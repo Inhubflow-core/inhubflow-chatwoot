@@ -986,14 +986,6 @@ const menuItems = computed(() => {
       class="grid"
       :class="isEffectivelyCollapsed ? 'mt-3 mb-6 gap-4' : 'mt-1 mb-4 gap-2'"
     >
-      <!-- InHubFlow App Switcher -->
-      <div
-        v-if="!isEffectivelyCollapsed"
-        class="px-2"
-      >
-        <InHubFlowAppSwitcher />
-      </div>
-
       <div
         class="flex gap-2 items-center min-w-0"
         :class="{
