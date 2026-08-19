@@ -19,18 +19,12 @@ const userEmail = computed(() => currentUser.value?.email || 'inhubflow@gmail.co
 const userName = computed(() => currentUser.value?.available_name || currentUser.value?.name || 'InHub Admin');
 const userInitial = computed(() => (userEmail.value ? userEmail.value.charAt(0).toUpperCase() : 'I'));
 
-const supportedLanguages = [
-  { code: 'pt_BR', label: 'Português (BR)', flag: '🇧🇷', short: 'PT-BR' },
-  { code: 'es', label: 'Español', flag: '🇪🇸', short: 'ES' },
-  { code: 'en', label: 'English', flag: '🇺🇸', short: 'EN' },
-];
-
 const currentLang = computed(() => {
   const loc = (locale.value || 'pt_BR').toLowerCase();
-  if (loc.includes('pt')) return { flag: '🇧🇷', short: 'PT-BR' };
-  if (loc.includes('es')) return { flag: '🇪🇸', short: 'ES' };
-  if (loc.includes('en')) return { flag: '🇺🇸', short: 'EN' };
-  return { flag: '🇧🇷', short: 'PT-BR' };
+  if (loc.includes('pt')) return { code: 'BR', label: 'PT-BR' };
+  if (loc.includes('es')) return { code: 'ES', label: 'ES' };
+  if (loc.includes('en')) return { code: 'US', label: 'EN' };
+  return { code: 'BR', label: 'PT-BR' };
 });
 
 const handleClickOutside = (event) => {
@@ -68,7 +62,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <header class="linki-replica-header">
+  <header class="linki-exact-header">
     <!-- Left Section -->
     <div class="header-left">
       <!-- Left Pill Badge -->
@@ -80,9 +74,9 @@ const handleLogout = () => {
       </div>
     </div>
 
-    <!-- Right Controls Section -->
+    <!-- Right Controls Section (Exact Linki Component Replica) -->
     <div class="header-right">
-      <!-- 1. App Switcher Button (4 Squares Icon) -->
+      <!-- 1. App Switcher Button (RiApps2Line exact 4-circles SVG) -->
       <div ref="suiteRef" class="popover-container">
         <button
           type="button"
@@ -91,7 +85,7 @@ const handleLogout = () => {
           @click="isSuiteOpen = !isSuiteOpen"
         >
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-            <path d="M4 4H10V10H4V4ZM4 14H10V20H4V14ZM14 4H20V10H14V4ZM14 14H20V20H14V14ZM2 3C2 2.44772 2.44772 2 3 2H11C11.5523 2 12 2.44772 12 3V11C12 11.5523 11.5523 12 11 12H3C2.44772 12 2 11.5523 2 11V3ZM2 13C2 12.4477 2.44772 12 3 12H11C11.5523 12 12 12.4477 12 13V21C12 21.5523 11.5523 22 11 22H3C2.44772 22 2 21.5523 2 21V13ZM12 3C12 2.44772 12.4477 2 13 2H21C21.5523 2 22 2.44772 22 3V11C22 11.5523 21.5523 12 21 12H13C12.4477 12 12 11.5523 12 11V3ZM12 13C12 12.4477 12.4477 12 13 12H21C21.5523 12 22 12.4477 22 13V21C22 21.5523 21.5523 22 21 22H13C12.4477 22 12 21.5523 12 21V13Z"/>
+            <path d="M7 11.5C4.51472 11.5 2.5 9.48528 2.5 7C2.5 4.51472 4.51472 2.5 7 2.5C9.48528 2.5 11.5 4.51472 11.5 7C11.5 9.48528 9.48528 11.5 7 11.5ZM7 21.5C4.51472 21.5 2.5 19.4853 2.5 17C2.5 14.5147 4.51472 12.5 7 12.5C9.48528 12.5 11.5 14.5147 11.5 17C11.5 19.4853 9.48528 21.5 7 21.5ZM17 11.5C14.5147 11.5 12.5 9.48528 12.5 7C12.5 4.51472 14.5147 2.5 17 2.5C19.4853 2.5 21.5 4.51472 21.5 7C21.5 9.48528 19.4853 11.5 17 11.5ZM17 21.5C14.5147 21.5 12.5 19.4853 12.5 17C12.5 14.5147 14.5147 12.5 17 12.5C19.4853 12.5 21.5 14.5147 21.5 17C21.5 19.4853 19.4853 21.5 17 21.5ZM7 9.5C8.38071 9.5 9.5 8.38071 9.5 7C9.5 5.61929 8.38071 4.5 7 4.5C5.61929 4.5 4.5 5.61929 4.5 7C4.5 8.38071 5.61929 9.5 7 9.5ZM7 19.5C8.38071 19.5 9.5 18.3807 9.5 17C9.5 15.6193 8.38071 14.5 7 14.5C5.61929 14.5 4.5 15.6193 4.5 17C4.5 18.3807 5.61929 19.5 7 19.5ZM17 9.5C18.3807 9.5 19.5 8.38071 19.5 7C19.5 5.61929 18.3807 4.5 17 4.5C16.0074 4.5 15 5.50736 15 6.75V9H17.25ZM17 19.5C18.3807 19.5 19.5 18.3807 19.5 17C19.5 15.6193 18.3807 14.5 17 14.5C15.6193 14.5 14.5 15.6193 14.5 17C14.5 18.3807 15.6193 19.5 17 19.5Z"/>
           </svg>
         </button>
 
@@ -145,7 +139,7 @@ const handleLogout = () => {
         </div>
       </div>
 
-      <!-- 2. Dark/Light Mode Button -->
+      <!-- 2. Dark/Light Mode Button (RiMoonLine exact outline SVG) -->
       <button
         type="button"
         class="control-btn"
@@ -153,19 +147,19 @@ const handleLogout = () => {
         @click="toggleTheme"
       >
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-          <path d="M10 7C10 10.866 13.134 14 17 14C18.7909 14 20.4309 13.3278 21.6823 12.2223C21.8845 13.4308 22 14.6983 22 16C22 20.4183 18.4183 24 14 24C9.58172 24 6 20.4183 6 16C6 11.8317 9.18667 8.39794 13.2384 8.03362C12.4578 8.65089 11.8009 9.42878 11.3195 10.3155C10.4908 9.32439 10 8.2173 10 7Z"/>
+          <path d="M10 7C10 10.866 13.134 14 17 14C18.9584 14 20.729 13.1957 21.9995 11.8995C22 11.933 22 11.9665 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2C12.0335 2 12.067 2 12.1005 2.00049C10.8043 3.27098 10 5.04157 10 7ZM4 12C4 16.4183 7.58172 20 12 20C15.0583 20 17.7158 18.2839 19.062 15.7621C18.3945 15.9187 17.7035 16 17 16C12.0294 16 8 11.9706 8 7C8 6.29648 8.08133 5.60547 8.2379 4.938C5.71611 6.28423 4 8.9417 4 12Z"/>
         </svg>
       </button>
 
-      <!-- 3. Language Selector Button -->
+      <!-- 3. Language Selector Button (BR / PT-BR text style) -->
       <div ref="langRef" class="popover-container">
         <button
           type="button"
           class="control-btn lang-btn"
           @click="isLangOpen = !isLangOpen"
         >
-          <span class="flag-icon">{{ currentLang.flag }}</span>
-          <span class="lang-text">{{ currentLang.short }}</span>
+          <span class="country-badge">{{ currentLang.code }}</span>
+          <span class="lang-text">{{ currentLang.label }}</span>
         </button>
 
         <div v-if="isLangOpen" class="dropdown-popover lang-dropdown">
@@ -250,14 +244,13 @@ const handleLogout = () => {
 
 <style scoped>
 /* Linki Exact Header Replica Styling */
-.linki-replica-header {
+.linki-exact-header {
   height: 64px;
   min-height: 64px;
+  max-height: 64px;
   width: 100%;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -266,10 +259,11 @@ const handleLogout = () => {
   z-index: 40;
   position: relative;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
 }
 
-:global(.dark) .linki-replica-header {
-  background: rgba(15, 23, 42, 0.9);
+:global(.dark) .linki-exact-header {
+  background: #0f172a;
   border-bottom-color: #1e293b;
 }
 
@@ -284,7 +278,7 @@ const handleLogout = () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 11px;
+  padding: 5px 12px;
   border-radius: 8px;
   background-color: rgba(59, 130, 246, 0.1);
   color: #2563eb;
@@ -306,32 +300,28 @@ const handleLogout = () => {
 .header-right {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-@media (min-width: 640px) {
-  .header-right {
-    gap: 0.75rem;
-  }
+  gap: 0.6rem;
 }
 
 .popover-container {
   position: relative;
 }
 
-/* Square Control Button */
+/* Square Control Button matching Linki exactly */
 .control-btn {
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
   background-color: #ffffff;
-  color: #4b5563;
+  color: #475569;
   cursor: pointer;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition: all 0.15s ease;
   padding: 0;
   box-sizing: border-box;
 }
@@ -343,8 +333,9 @@ const handleLogout = () => {
 }
 
 .control-btn:hover {
-  background-color: #f3f4f6;
-  color: #111827;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  color: #0f172a;
 }
 
 :global(.dark) .control-btn:hover {
@@ -352,41 +343,47 @@ const handleLogout = () => {
   color: #ffffff;
 }
 
-/* Language Button */
+/* Language Button matching Linki */
 .lang-btn {
   width: auto;
-  padding: 0 10px;
-  gap: 6px;
+  min-width: unset;
+  padding: 0 12px;
+  gap: 8px;
 }
 
-.flag-icon {
-  font-size: 14px;
-  line-height: 1;
+.country-badge {
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .lang-text {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  color: #374151;
+  color: #1e293b;
   text-transform: uppercase;
 }
 
 :global(.dark) .lang-text {
-  color: #cbd5e1;
+  color: #f1f5f9;
 }
 
-/* User Button */
+/* User Button matching Linki */
 .user-btn {
   height: 40px;
+  min-height: 40px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
   background-color: #ffffff;
-  padding: 4px 12px 4px 6px;
+  padding: 4px 14px 4px 6px;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
 }
 
 :global(.dark) .user-btn {
@@ -395,7 +392,8 @@ const handleLogout = () => {
 }
 
 .user-btn:hover {
-  background-color: #f3f4f6;
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
 }
 
 :global(.dark) .user-btn:hover {
@@ -406,21 +404,21 @@ const handleLogout = () => {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
   color: #ffffff;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.25);
   flex-shrink: 0;
 }
 
 .user-email-text {
   font-size: 12px;
-  font-weight: 500;
-  color: #374151;
+  font-weight: 600;
+  color: #334155;
   max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -437,7 +435,7 @@ const handleLogout = () => {
   right: 0;
   top: calc(100% + 8px);
   background: #ffffff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
   border-radius: 16px;
   padding: 8px;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
@@ -465,7 +463,7 @@ const handleLogout = () => {
 
 .dropdown-header {
   padding: 6px 10px 8px 10px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid #f1f5f9;
   margin-bottom: 4px;
 }
 
@@ -478,13 +476,13 @@ const handleLogout = () => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #9ca3af;
+  color: #94a3b8;
 }
 
 .user-name-bold {
   font-size: 12px;
   font-weight: 700;
-  color: #111827;
+  color: #0f172a;
   margin: 0;
 }
 
@@ -494,7 +492,7 @@ const handleLogout = () => {
 
 .user-email-sub {
   font-size: 11px;
-  color: #6b7280;
+  color: #64748b;
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -524,7 +522,7 @@ const handleLogout = () => {
 }
 
 .suite-item:hover {
-  background-color: #f3f4f6;
+  background-color: #f8fafc;
 }
 
 :global(.dark) .suite-item:hover {
@@ -565,7 +563,7 @@ const handleLogout = () => {
 .suite-title {
   font-size: 12px;
   font-weight: 600;
-  color: #111827;
+  color: #0f172a;
   margin: 0;
 }
 
@@ -575,7 +573,7 @@ const handleLogout = () => {
 
 .suite-desc {
   font-size: 10px;
-  color: #6b7280;
+  color: #64748b;
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
