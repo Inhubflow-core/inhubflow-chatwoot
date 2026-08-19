@@ -1,0 +1,79 @@
+/* InHubFlow TailAdmin Theme for Chatwoot */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+:root {
+  --w-50: #ecf3ff !important;
+  --w-100: #dde9ff !important;
+  --w-200: #c2d6ff !important;
+  --w-300: #9cb9ff !important;
+  --w-400: #7592ff !important;
+  --w-500: #465fff !important;
+  --w-600: #3641f5 !important;
+  --w-700: #2a31d8 !important;
+  --w-800: #252dae !important;
+  --w-900: #262e89 !important;
+  --brand-primary: #465fff !important;
+  --color-primary: #465fff !important;
+}
+
+body, button, input, select, textarea, .text-slate-600, .sidebar, .header {
+  font-family: 'Outfit', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  letter-spacing: -0.01em;
+}
+
+/* Primary Color Overrides */
+.bg-woot-500,
+.bg-woot-600,
+.bg-primary,
+.button.primary,
+.button--primary,
+.button-primary,
+button[type="submit"].bg-woot-500 {
+  background-color: #465fff !important;
+  border-color: #465fff !important;
+}
+
+.bg-woot-500:hover,
+.bg-woot-600:hover,
+.button.primary:hover,
+.button--primary:hover {
+  background-color: #3641f5 !important;
+}
+
+.text-woot-500,
+.text-woot-600,
+.text-primary {
+  color: #465fff !important;
+}
+
+.border-woot-500,
+.border-woot-600,
+.border-primary {
+  border-color: #465fff !important;
+}
+
+/* TailAdmin Card & Container Enhancements */
+.bg-white,
+.card {
+  border-color: #e4e7ec !important;
+}
+
+/* InHubFlow Suite Link Badge */
+#inhub-suite-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f2f4f7;
+  color: #344054;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+#inhub-suite-badge:hover {
+  background: #465fff;
+  color: #ffffff;
+}

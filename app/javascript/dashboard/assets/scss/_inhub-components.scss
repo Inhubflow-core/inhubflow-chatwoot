@@ -1,0 +1,479 @@
+// ============================================================================
+// INHUBFLOW COMPONENT OVERRIDES
+// Specific component styling to match TailAdmin/Linki exactly
+// ============================================================================
+
+// ==========================================
+// APP HEADER (Top Navigation Bar)
+// ==========================================
+.header,
+.app-header,
+[class*="header--"] {
+  background: rgb(var(--surface-1)) !important;
+  border-bottom: 1px solid rgb(var(--border-container)) !important;
+  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05) !important;
+  height: 64px;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  .page-title,
+  .header-title {
+    font-family: 'Outfit', sans-serif !important;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--color-gray-900);
+
+    .dark & {
+      color: var(--color-gray-25);
+    }
+  }
+}
+
+// ==========================================
+// INHUBFLOW APP SWITCHER (Match Linki)
+// ==========================================
+.inhub-app-switcher {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  .app-switcher-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--color-gray-200);
+    background: white;
+    color: var(--color-gray-700);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: var(--color-gray-50);
+      border-color: var(--color-gray-300);
+    }
+
+    .dark & {
+      background: rgb(var(--surface-2));
+      border-color: rgb(var(--border-container));
+      color: var(--color-gray-300);
+
+      &:hover {
+        background: rgb(var(--surface-1));
+      }
+    }
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  .app-switcher-dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    min-width: 280px;
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 0.75rem;
+    box-shadow:
+      0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+      0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+    padding: 0.5rem;
+    z-index: 9999;
+
+    .dark & {
+      background: rgb(var(--surface-2));
+      border-color: rgb(var(--border-container));
+    }
+
+    .app-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      color: var(--color-gray-700);
+
+      &:hover {
+        background: var(--color-gray-50);
+
+        .dark & {
+          background: rgb(var(--surface-1));
+        }
+      }
+
+      .app-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1rem;
+
+        &.linki {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+        }
+
+        &.chatwoot {
+          background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+          color: white;
+        }
+      }
+
+      .app-info {
+        flex: 1;
+
+        .app-name {
+          font-family: 'Outfit', sans-serif;
+          font-weight: 600;
+          font-size: 0.875rem;
+          color: var(--color-gray-900);
+          margin-bottom: 0.125rem;
+
+          .dark & {
+            color: var(--color-gray-25);
+          }
+        }
+
+        .app-description {
+          font-family: 'Outfit', sans-serif;
+          font-size: 0.75rem;
+          color: var(--color-gray-500);
+
+          .dark & {
+            color: var(--color-gray-400);
+          }
+        }
+      }
+    }
+  }
+}
+
+// ==========================================
+// SIDEBAR NAVIGATION (Match Linki)
+// ==========================================
+.sidebar {
+  background: rgb(var(--surface-1)) !important;
+  border-right: 1px solid rgb(var(--border-container)) !important;
+  width: 260px;
+  padding: 1rem;
+
+  .sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .menu-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.625rem 0.75rem;
+      border-radius: 0.5rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 500;
+      font-size: 0.875rem;
+      color: var(--color-gray-700);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      .dark & {
+        color: var(--color-gray-300);
+      }
+
+      .menu-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--color-gray-500);
+
+        .dark & {
+          color: var(--color-gray-400);
+        }
+      }
+
+      &:hover {
+        background: var(--color-gray-100);
+
+        .dark & {
+          background: rgba(255, 255, 255, 0.05);
+        }
+
+        .menu-icon {
+          color: var(--color-gray-700);
+
+          .dark & {
+            color: var(--color-gray-300);
+          }
+        }
+      }
+
+      &.active,
+      &.is-active {
+        background: var(--color-brand-50) !important;
+        color: var(--color-brand-500) !important;
+
+        .dark & {
+          background: rgba(70, 95, 255, 0.12) !important;
+          color: var(--color-brand-400) !important;
+        }
+
+        .menu-icon {
+          color: var(--color-brand-500) !important;
+
+          .dark & {
+            color: var(--color-brand-400) !important;
+          }
+        }
+      }
+    }
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid rgb(var(--border-container));
+  }
+}
+
+// ==========================================
+// CONVERSATION CARDS (Match Linki Cards)
+// ==========================================
+.conversation--list-item,
+.conversation-card {
+  background: rgb(var(--surface-1));
+  border: 1px solid rgb(var(--border-weak));
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-gray-50);
+    border-color: var(--color-gray-200);
+    box-shadow: 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
+
+    .dark & {
+      background: rgb(var(--surface-2));
+      border-color: rgb(var(--border-container));
+    }
+  }
+
+  &.active {
+    background: var(--color-brand-50) !important;
+    border-color: var(--color-brand-200) !important;
+
+    .dark & {
+      background: rgba(70, 95, 255, 0.12) !important;
+      border-color: rgba(70, 95, 255, 0.2) !important;
+    }
+  }
+
+  .conversation-title {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-gray-900);
+    margin-bottom: 0.25rem;
+
+    .dark & {
+      color: var(--color-gray-25);
+    }
+  }
+
+  .conversation-meta {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    color: var(--color-gray-500);
+
+    .dark & {
+      color: var(--color-gray-400);
+    }
+  }
+}
+
+// ==========================================
+// MODALS (Match TailAdmin)
+// ==========================================
+.modal,
+.modal-container {
+  .modal-content {
+    background: rgb(var(--surface-1));
+    border: 1px solid rgb(var(--border-container));
+    border-radius: 0.75rem;
+    box-shadow:
+      0px 20px 24px -4px rgba(16, 24, 40, 0.08),
+      0px 8px 8px -4px rgba(16, 24, 40, 0.03);
+    max-width: 90%;
+    margin: 2rem auto;
+
+    .modal-header {
+      padding: 1.5rem;
+      border-bottom: 1px solid rgb(var(--border-container));
+
+      .modal-title {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        font-size: 1.125rem;
+        color: var(--color-gray-900);
+
+        .dark & {
+          color: var(--color-gray-25);
+        }
+      }
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-footer {
+      padding: 1.5rem;
+      border-top: 1px solid rgb(var(--border-container));
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+    }
+  }
+}
+
+// ==========================================
+// DROPDOWNS (Match TailAdmin)
+// ==========================================
+.dropdown-menu {
+  background: rgb(var(--surface-1));
+  border: 1px solid rgb(var(--border-container));
+  border-radius: 0.5rem;
+  box-shadow:
+    0px 12px 16px -4px rgba(16, 24, 40, 0.08),
+    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+  padding: 0.25rem;
+  min-width: 180px;
+
+  .dropdown-item {
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.375rem;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.875rem;
+    color: var(--color-gray-700);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    .dark & {
+      color: var(--color-gray-300);
+    }
+
+    &:hover {
+      background: var(--color-gray-100);
+
+      .dark & {
+        background: rgba(255, 255, 255, 0.05);
+      }
+    }
+  }
+}
+
+// ==========================================
+// AVATARS (Rounded & Consistent)
+// ==========================================
+.avatar {
+  border-radius: 50% !important;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-brand-50);
+  color: var(--color-brand-600);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+
+  .dark & {
+    background: rgba(70, 95, 255, 0.12);
+    color: var(--color-brand-400);
+  }
+}
+
+// ==========================================
+// TABS (Match TailAdmin)
+// ==========================================
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgb(var(--border-container));
+  padding: 0 1rem;
+
+  .tab-item {
+    padding: 0.75rem 1rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: var(--color-gray-500);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+    bottom: -1px;
+
+    &:hover {
+      color: var(--color-gray-700);
+
+      .dark & {
+        color: var(--color-gray-300);
+      }
+    }
+
+    &.active {
+      color: var(--color-brand-600);
+      border-bottom-color: var(--color-brand-600);
+
+      .dark & {
+        color: var(--color-brand-400);
+        border-bottom-color: var(--color-brand-400);
+      }
+    }
+  }
+}
+
+// ==========================================
+// STATUS INDICATORS
+// ==========================================
+.status-indicator {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  display: inline-block;
+
+  &.online {
+    background: var(--color-success-500);
+  }
+
+  &.offline {
+    background: var(--color-gray-400);
+  }
+
+  &.busy {
+    background: var(--color-error-500);
+  }
+
+  &.away {
+    background: var(--color-warning-500);
+  }
+}
