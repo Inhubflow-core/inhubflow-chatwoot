@@ -1004,14 +1004,14 @@ const menuItems = computed(() => {
         <template v-else>
           <div class="flex flex-col items-start justify-center w-full px-1 py-1">
             <img
-              :src="'/logo-master-light.png?v=3'"
+              :src="'/logo-master-light.png?v=4'"
               alt="InHubFlow"
-              class="block dark:hidden w-full max-w-[185px] h-auto object-contain transition-all duration-200"
+              class="block dark:hidden w-[200px] h-[44px] object-contain transition-all duration-200"
             />
             <img
-              :src="'/logo-master-dark.png?v=3'"
+              :src="'/logo-master-dark.png?v=4'"
               alt="InHubFlow"
-              class="hidden dark:block w-full max-w-[185px] h-auto object-contain transition-all duration-200"
+              class="hidden dark:block w-[200px] h-[44px] object-contain transition-all duration-200"
             />
             <span class="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-widest pl-1 mt-1">
               B2C OMNICHANNEL SUITE
