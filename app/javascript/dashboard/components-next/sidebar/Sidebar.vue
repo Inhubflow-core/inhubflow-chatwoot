@@ -996,7 +996,7 @@ const menuItems = computed(() => {
       >
         <template v-if="isEffectivelyCollapsed">
           <img
-            src="/logo-icon.png"
+            :src="'/logo-icon.png'"
             alt="InHubFlow"
             class="h-8 w-8 object-contain"
           />
@@ -1004,12 +1004,12 @@ const menuItems = computed(() => {
         <template v-else>
           <div class="flex flex-col items-start justify-center w-full px-1 py-1">
             <img
-              src="/logo-master-light.png"
+              :src="'/logo-master-light.png'"
               alt="InHubFlow"
               class="block dark:hidden w-full max-w-[185px] h-auto object-contain transition-all duration-200"
             />
             <img
-              src="/logo-master-dark.png"
+              :src="'/logo-master-dark.png'"
               alt="InHubFlow"
               class="hidden dark:block w-full max-w-[185px] h-auto object-contain transition-all duration-200"
             />
