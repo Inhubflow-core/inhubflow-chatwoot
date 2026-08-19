@@ -986,28 +986,37 @@ const menuItems = computed(() => {
       class="grid"
       :class="isEffectivelyCollapsed ? 'mt-3 mb-6 gap-4' : 'mt-1 mb-4 gap-2'"
     >
+      <!-- InHubFlow Brand Logo Header matching Linki -->
       <div
         class="flex gap-2 items-center min-w-0"
         :class="{
-          'justify-center px-1': isEffectivelyCollapsed,
-          'px-2': !isEffectivelyCollapsed,
+          'justify-center px-1 py-1': isEffectivelyCollapsed,
+          'px-2 py-1': !isEffectivelyCollapsed,
         }"
       >
         <template v-if="isEffectivelyCollapsed">
-          <SidebarAccountSwitcher
-            is-collapsed
-            @show-create-account-modal="emit('showCreateAccountModal')"
+          <img
+            src="/logo-icon.png"
+            alt="InHubFlow"
+            class="h-8 w-8 object-contain"
           />
         </template>
         <template v-else>
-          <div class="grid flex-shrink-0 place-content-center size-6">
-            <Logo class="size-4" />
+          <div class="flex flex-col items-start justify-center w-full px-1 py-1">
+            <img
+              src="/logo-master-light.png"
+              alt="InHubFlow"
+              class="block dark:hidden w-full max-w-[185px] h-auto object-contain transition-all duration-200"
+            />
+            <img
+              src="/logo-master-dark.png"
+              alt="InHubFlow"
+              class="hidden dark:block w-full max-w-[185px] h-auto object-contain transition-all duration-200"
+            />
+            <span class="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-widest pl-1 mt-1">
+              B2C OMNICHANNEL SUITE
+            </span>
           </div>
-          <div class="flex-shrink-0 w-px h-3 bg-n-strong" />
-          <SidebarAccountSwitcher
-            class="flex-grow -mx-1 min-w-0"
-            @show-create-account-modal="emit('showCreateAccountModal')"
-          />
         </template>
       </div>
       <div
