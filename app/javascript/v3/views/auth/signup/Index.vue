@@ -40,13 +40,13 @@ const resizeContainers = () => {
         <div class="max-w-[420px] w-full">
           <div class="mb-6">
             <img
-              src="/logo-master-light.png"
-              alt="InHubFlow"
+              :src="globalConfig.logo || '/logo-master-light.png'"
+              :alt="globalConfig.installationName || 'InHubFlow'"
               class="block w-auto h-10 dark:hidden object-contain"
             />
             <img
-              src="/logo-master-dark.png"
-              alt="InHubFlow"
+              :src="globalConfig.logoDark || '/logo-master-dark.png'"
+              :alt="globalConfig.installationName || 'InHubFlow'"
               class="hidden w-auto h-10 dark:block object-contain"
             />
             <h2 class="mt-6 text-2xl font-semibold text-n-slate-12">
