@@ -294,15 +294,14 @@ export default {
   >
     <section class="max-w-5xl mx-auto">
       <img
-        :src="globalConfig.logo"
-        :alt="globalConfig.installationName"
-        class="block w-auto h-8 mx-auto dark:hidden"
+        src="/logo-master-light.png?v=4"
+        alt="InHubFlow"
+        class="block w-auto h-11 mx-auto dark:hidden object-contain"
       />
       <img
-        v-if="globalConfig.logoDark"
-        :src="globalConfig.logoDark"
-        :alt="globalConfig.installationName"
-        class="hidden w-auto h-8 mx-auto dark:block"
+        src="/logo-master-dark.png?v=4"
+        alt="InHubFlow"
+        class="hidden w-auto h-11 mx-auto dark:block object-contain"
       />
       <h2 class="mt-6 text-3xl font-medium text-center text-n-slate-12">
         {{ replaceInstallationName($t('LOGIN.TITLE')) }}
