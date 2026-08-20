@@ -40,12 +40,12 @@ const resizeContainers = () => {
         <div class="max-w-[420px] w-full">
           <div class="mb-6">
             <img
-              src="/logo-master-light.png?v=4"
+              src="/logo-master-light.png"
               alt="InHubFlow"
               class="block w-auto h-10 dark:hidden object-contain"
             />
             <img
-              src="/logo-master-dark.png?v=4"
+              src="/logo-master-dark.png"
               alt="InHubFlow"
               class="hidden w-auto h-10 dark:block object-contain"
             />

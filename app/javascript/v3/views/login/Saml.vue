@@ -73,12 +73,12 @@ onMounted(async () => {
   >
     <section class="max-w-5xl mx-auto">
       <img
-        src="/logo-master-light.png?v=4"
+        src="/logo-master-light.png"
         alt="InHubFlow"
         class="block w-auto h-11 mx-auto dark:hidden object-contain"
       />
       <img
-        src="/logo-master-dark.png?v=4"
+        src="/logo-master-dark.png"
         alt="InHubFlow"
         class="hidden w-auto h-11 mx-auto dark:block object-contain"
       />

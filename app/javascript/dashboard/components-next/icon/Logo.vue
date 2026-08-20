@@ -9,7 +9,7 @@ const globalConfig = useMapGetter('globalConfig/get');
 <template>
   <img
     v-bind="attrs"
-    :src="'/logo-icon.png?v=3'"
+    :src="'/logo-icon.png'"
     alt="InHubFlow"
     class="object-contain"
   />
