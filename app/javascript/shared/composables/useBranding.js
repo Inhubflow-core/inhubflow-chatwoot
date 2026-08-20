@@ -16,9 +16,9 @@ export function useBranding() {
     if (!text) return text;
 
     const installationName = globalConfig.value?.installationName;
-    if (!installationName) return text;
+    const finalName = (installationName && installationName !== 'Chatwoot') ? installationName : 'InHubFlow';
 
-    return text.replace(/chatwoot/gi, installationName);
+    return text.replace(/chatwoot/gi, finalName);
   };
 
   return {

@@ -294,13 +294,13 @@ export default {
   >
     <section class="max-w-5xl mx-auto">
       <img
-        :src="globalConfig.logo || '/logo-master-light.png'"
-        :alt="globalConfig.installationName || 'InHubFlow'"
+        :src="'/logo-master-light.png'"
+        alt="InHubFlow"
         class="block w-auto h-11 mx-auto dark:hidden object-contain"
       />
       <img
-        :src="globalConfig.logoDark || '/logo-master-dark.png'"
-        :alt="globalConfig.installationName || 'InHubFlow'"
+        :src="'/logo-master-dark.png'"
+        alt="InHubFlow"
         class="hidden w-auto h-11 mx-auto dark:block object-contain"
       />
       <h2 class="mt-6 text-3xl font-medium text-center text-n-slate-12">

@@ -48,6 +48,11 @@ class DashboardController < ActionController::Base
 
   def set_global_config
     @global_config = GlobalConfig.get(*GLOBAL_CONFIG_KEYS).merge(app_config)
+    @global_config['INSTALLATION_NAME'] = 'InHubFlow' if @global_config['INSTALLATION_NAME'].blank? || @global_config['INSTALLATION_NAME'] == 'Chatwoot'
+    @global_config['BRAND_NAME'] = 'InHubFlow' if @global_config['BRAND_NAME'].blank? || @global_config['BRAND_NAME'] == 'Chatwoot'
+    @global_config['LOGO'] = '/logo-master-light.png' if @global_config['LOGO'].blank? || @global_config['LOGO'].include?('chatwoot') || @global_config['LOGO'].include?('logo.svg')
+    @global_config['LOGO_DARK'] = '/logo-master-dark.png' if @global_config['LOGO_DARK'].blank? || @global_config['LOGO_DARK'].include?('chatwoot') || @global_config['LOGO_DARK'].include?('logo_dark.svg')
+    @global_config['LOGO_THUMBNAIL'] = '/logo-icon.png' if @global_config['LOGO_THUMBNAIL'].blank? || @global_config['LOGO_THUMBNAIL'].include?('chatwoot') || @global_config['LOGO_THUMBNAIL'].include?('logo_thumbnail.svg')
   end
 
   def set_dashboard_scripts
