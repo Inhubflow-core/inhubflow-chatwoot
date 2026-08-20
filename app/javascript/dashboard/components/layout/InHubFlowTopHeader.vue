@@ -49,6 +49,7 @@ const toggleTheme = () => {
 };
 
 onMounted(() => {
+  document.title = 'Dashboard B2C';
   document.addEventListener('click', handleClickOutside);
 });
 
