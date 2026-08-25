@@ -371,11 +371,25 @@ const reportRoutes = computed(() => newReportRoutes());
 const menuItems = computed(() => {
   return [
     {
-      name: 'Outreach',
-      label: t('SIDEBAR.OUTREACH'),
+      name: 'LeadGeneration',
+      label: t('SIDEBAR.LEAD_GENERATION') || '🎯 Generar Leads',
       icon: 'i-lucide-sparkles',
       to: accountScopedRoute('outreach_dashboard_index'),
       activeOn: ['outreach_dashboard_index'],
+    },
+    {
+      name: 'Campaigns',
+      label: t('SIDEBAR.CAMPAIGNS_HUB') || '🚀 Campañas',
+      icon: 'i-lucide-send',
+      to: accountScopedRoute('outreach_campaigns'),
+      activeOn: ['outreach_campaigns'],
+    },
+    {
+      name: 'LeadLists',
+      label: t('SIDEBAR.LEAD_LISTS') || '📋 Listas de Leads',
+      icon: 'i-lucide-list',
+      to: accountScopedRoute('outreach_lists'),
+      activeOn: ['outreach_lists'],
     },
     {
       name: 'Inbox',

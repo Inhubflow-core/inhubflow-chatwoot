@@ -65,14 +65,16 @@ COPY Gemfile Gemfile.lock ./
 RUN apk update && apk add --no-cache build-base musl ruby-full ruby-dev gcc make musl-dev openssl openssl-dev g++ linux-headers xz vips
 RUN bundle config set --local force_ruby_platform true
 
-# Do not install development or test gems in production
-RUN if [ "$RAILS_ENV" = "production" ]; then \
-  bundle config set without 'development test'; bundle install -j 4 -r 3; \
-  else bundle install -j 4 -r 3; \
-  fi
+# Do not install development or test gems in production (with BuildKit cache)
+RUN --mount=type=cache,target=/root/.bundle/cache \
+    --mount=type=cache,target=/gems/ruby/3.4.0/cache \
+    if [ "$RAILS_ENV" = "production" ]; then \
+      bundle config set without 'development test'; bundle install -j $(nproc) -r 3; \
+    else bundle install -j $(nproc) -r 3; \
+    fi
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm i
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store pnpm i --frozen-lockfile
 
 COPY . /app
 
@@ -80,11 +82,12 @@ COPY . /app
 # https://github.com/chatwoot/chatwoot/issues/701
 RUN mkdir -p /app/log
 
-# generate production assets if production environment
-RUN if [ "$RAILS_ENV" = "production" ]; then \
-  SECRET_KEY_BASE=precompile_placeholder RAILS_LOG_TO_STDOUT=enabled bundle exec rake assets:precompile \
-  && rm -rf spec node_modules tmp/cache; \
-  fi
+# generate production assets if production environment (with caching)
+RUN --mount=type=cache,target=/app/tmp/cache \
+    if [ "$RAILS_ENV" = "production" ]; then \
+      SECRET_KEY_BASE=precompile_placeholder RAILS_LOG_TO_STDOUT=enabled bundle exec rake assets:precompile \
+      && rm -rf spec node_modules tmp/cache; \
+    fi
 
 # Generate .git_sha file with current commit hash
 RUN git rev-parse HEAD > /app/.git_sha 2>/dev/null || echo "develop" > /app/.git_sha
