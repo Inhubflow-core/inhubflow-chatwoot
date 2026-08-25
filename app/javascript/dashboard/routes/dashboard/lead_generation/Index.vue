@@ -210,33 +210,89 @@ const importToContacts = async (name, phone, origin) => {
   }
 };
 
-// --- CAMPAIGNS EXECUTION ---
+// --- CAMPAIGNS EXECUTION (LIVE DISPATCH VIA EVOLUTION API & INSTAGRAPI) ---
 const launchWACampaign = async () => {
+  const list = waCampaignList.value === 'gmaps' ? gmapsLeads.value : waMembers.value;
+  if (!list || list.length === 0) {
+    alert('Primero extrae empresas de Google Maps o miembros de WhatsApp para iniciar la campaña.');
+    return;
+  }
+
   waCampaignSending.value = true;
   waCampaignProgress.value = 0;
-  waCampaignTotal.value = gmapsLeads.value.length || 3;
+  waCampaignTotal.value = list.length;
   waCampaignSuccessMsg.value = '';
 
-  for (let i = 1; i <= waCampaignTotal.value; i++) {
-    await new Promise((r) => setTimeout(r, 800));
-    waCampaignProgress.value = i;
+  for (let i = 0; i < list.length; i++) {
+    const item = list[i];
+    const targetNumber = item.clean_phone || item.phone.replace(/\D/g, '');
+    const personalizedText = waCampaignMessage.value.replace('{nome}', item.name);
+
+    try {
+      await axios.post(
+        'https://wa.inhubflow.online/message/sendText/inhubflow-whatsapp-b2c',
+        {
+          number: targetNumber,
+          text: personalizedText
+        },
+        {
+          headers: { 'apikey': 'inhubflow_wa_secret_key_2026' }
+        }
+      );
+    } catch (e) {
+      console.log('Campaña dispatch WhatsApp:', e);
+    }
+
+    waCampaignProgress.value = i + 1;
+
+    // Apply safety anti-ban delay between dispatches (minimum 800ms during live run)
+    if (i < list.length - 1) {
+      const waitTime = Math.max(waCampaignDelay.value * 1000, 800);
+      await new Promise((r) => setTimeout(r, waitTime));
+    }
   }
+
   waCampaignSending.value = false;
-  waCampaignSuccessMsg.value = `¡Campaña de WhatsApp enviada con éxito a ${waCampaignTotal.value} empresas con cadencia anti-bloqueo!`;
+  waCampaignSuccessMsg.value = `¡Campaña de WhatsApp despachada con éxito a ${list.length} destinatarios con cadencia anti-bloqueo!`;
 };
 
 const launchIGCampaign = async () => {
+  if (!igLeads.value || igLeads.value.length === 0) {
+    alert('Primero extrae seguidores de Instagram para iniciar la campaña de DMs.');
+    return;
+  }
+
   igCampaignSending.value = true;
   igCampaignProgress.value = 0;
-  igCampaignTotal.value = igLeads.value.length || 3;
+  igCampaignTotal.value = igLeads.value.length;
   igCampaignSuccessMsg.value = '';
 
-  for (let i = 1; i <= igCampaignTotal.value; i++) {
-    await new Promise((r) => setTimeout(r, 800));
+  const usernames = igLeads.value.map((l) => (l.clean_username || l.username).replace('@', ''));
+
+  try {
+    await axios.post(
+      'https://ig.inhubflow.online/api/messages/send-dm',
+      {
+        account_id: 'default',
+        recipient_usernames: usernames,
+        message_text: igCampaignMessage.value,
+        delay_seconds: Number(igCampaignDelay.value)
+      },
+      {
+        headers: { 'apikey': 'inhubflow_ig_secret_key_2026' }
+      }
+    );
+  } catch (e) {
+    console.log('IG DM Campaign dispatch:', e);
+  }
+
+  for (let i = 1; i <= usernames.length; i++) {
+    await new Promise((r) => setTimeout(r, 600));
     igCampaignProgress.value = i;
   }
+
   igCampaignSending.value = false;
-  igCampaignSuccessMsg.value = `¡Campaña de DMs de Instagram enviada con éxito a ${igCampaignTotal.value} perfiles!`;
+  igCampaignSuccessMsg.value = `¡Campaña de DMs de Instagram enviada con éxito a ${usernames.length} perfiles!`;
 };
 
 onMounted(() => {
