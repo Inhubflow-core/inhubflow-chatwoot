@@ -11,7 +11,7 @@ const activeTab = ref('gmaps');
 // ==========================================
 // 1. GOOGLE MAPS EXTRACTOR STATE
 // ==========================================
-const gmapsQuery = ref('Dentistas em Vila Velha, ES');
+const gmapsQuery = ref('');
 const gmapsLimit = ref(20);
 const gmapsLoading = ref(false);
 const gmapsLeads = ref([]);
@@ -36,7 +36,7 @@ const waSuccessMsg = ref('');
 // ==========================================
 // 3. INSTAGRAM EXTRACTOR STATE
 // ==========================================
-const igAccount = ref('@odontocompany_vilavelha');
+const igAccount = ref('');
 const igAmount = ref(50);
 const igFilterBusiness = ref(true);
 const igLoading = ref(false);
@@ -406,7 +406,7 @@ onMounted(() => {
                 <input
                   v-model="gmapsQuery"
                   type="text"
-                  placeholder="ej: Dentistas em Vila Velha, ES / Inmobiliarias en Bogotá / Clínicas en Miami"
+                  placeholder="Escribe el nicho y la ciudad (ej: Dentistas en Vila Velha, Odontólogos en Caracas, Clínicas en Bogotá...)"
                   class="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
                 />
                 <span class="i-lucide-search absolute left-4 top-3.5 text-slate-400 size-4" />
