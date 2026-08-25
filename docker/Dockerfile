@@ -86,7 +86,7 @@ RUN mkdir -p /app/log
 RUN --mount=type=cache,target=/app/tmp/cache \
     if [ "$RAILS_ENV" = "production" ]; then \
       SECRET_KEY_BASE=precompile_placeholder RAILS_LOG_TO_STDOUT=enabled bundle exec rake assets:precompile \
-      && rm -rf spec node_modules tmp/cache; \
+      && rm -rf spec node_modules; \
     fi
 
 # Generate .git_sha file with current commit hash
