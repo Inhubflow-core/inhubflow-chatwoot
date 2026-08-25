@@ -5,8 +5,45 @@ import axios from 'axios';
 
 const { accountId } = useAccount();
 
-// Main Tabs: 'gmaps' | 'whatsapp_groups' | 'instagram' | 'campaign_wa' | 'campaign_ig'
+// Main Navigation Tabs: 'gmaps' | 'whatsapp_groups' | 'instagram' | 'saved_lists' | 'campaign_wa' | 'campaign_ig'
 const activeTab = ref('gmaps');
+
+// ==========================================
+// 0. SAVED LISTS & HISTORICAL TRACKING STATE
+// ==========================================
+const savedLists = ref([
+  {
+    id: 'list_gmaps_1',
+    name: '📍 Dentistas em Vila Velha, ES',
+    source: 'gmaps',
+    sourceLabel: 'Google Maps',
+    count: 20,
+    createdAt: '25/08/2026 14:45',
+    lastDispatchedAt: null,
+    status: 'pending',
+    leads: [
+      { name: 'OdontoCompany Vila Velha', phone: '+55 27 99881-2233', clean_phone: '5527998812233', address: 'Praia da Costa, Vila Velha', rating: '4.9 ⭐', website: 'https://www.odontocompany.com.br' },
+      { name: 'Sorridents Glória', phone: '+55 27 99774-5511', clean_phone: '5527997745511', address: 'Glória, Vila Velha', rating: '4.8 ⭐', website: 'https://www.sorridents.com.br' },
+      { name: 'Clínica Oral Sin Implantes', phone: '+55 27 99661-8844', clean_phone: '5527996618844', address: 'Itapuã, Vila Velha', rating: '4.9 ⭐', website: 'https://www.oralsin.com.br' }
+    ]
+  },
+  {
+    id: 'list_wa_1',
+    name: '👥 Grupo Red Odontólogos & Clínicas',
+    source: 'whatsapp',
+    sourceLabel: 'Grupos WhatsApp',
+    count: 5,
+    createdAt: '25/08/2026 13:30',
+    lastDispatchedAt: '25/08/2026 14:10',
+    status: 'sent',
+    leads: [
+      { name: 'Dr. Roberto Silva (Especialista)', phone: '+55 27 99664-6306', clean_phone: '5527996646306', role: 'admin' },
+      { name: 'Dra. Mariana Castro', phone: '+55 27 99881-2233', clean_phone: '5527998812233', role: 'member' }
+    ]
+  }
+]);
+
+const selectedViewingList = ref(null);
 
 // ==========================================
 // 1. GOOGLE MAPS EXTRACTOR STATE
@@ -19,9 +56,9 @@ const gmapsSuccessMsg = ref('');
 const gmapsErrorMsg = ref('');
 
 // ==========================================
-// 2. WHATSAPP GROUPS (2-PHASE FINDER & EXTRACTOR)
+// 2. WHATSAPP GROUPS STATE
 // ==========================================
-const waGroupMode = ref('search'); // 'search' (web finder) | 'my_groups'
+const waGroupMode = ref('search');
 const waSearchKeyword = ref('');
 const waSearchLimit = ref(15);
 const waSearchingLinks = ref(false);
@@ -52,8 +89,8 @@ const igSuccessMsg = ref('');
 // ==========================================
 // 4. WHATSAPP CAMPAIGN STATE
 // ==========================================
-const waCampaignList = ref('gmaps');
-const waCampaignMessage = ref('Olá {nome}! Tudo bem? Gostaria de apresentar uma oportunidade exclusiva com a tecnologia InHubFlow.');
+const selectedWaListId = ref('list_gmaps_1');
+const waCampaignMessage = ref('Olá {nome}! Tudo bem? Vi seu perfil e gostaria de apresentar a tecnologia InHubFlow.');
 const waCampaignDelay = ref(25);
 const waCampaignSending = ref(false);
 const waCampaignProgress = ref(0);
@@ -63,6 +100,7 @@ const waCampaignSuccessMsg = ref('');
 // ==========================================
 // 5. INSTAGRAM CAMPAIGN STATE
 // ==========================================
+const selectedIgListId = ref('');
 const igCampaignMessage = ref('Hola @{username}! Vimos tu perfil y nos encantó tu contenido. Te escribimos desde InHubFlow con una invitación especial.');
 const igCampaignDelay = ref(30);
 const igCampaignSending = ref(false);
@@ -71,8 +109,57 @@ const igCampaignTotal = ref(0);
 const igCampaignSuccessMsg = ref('');
 
 // ==========================================
-// METHODS
+// METHODS & LIST MANAGEMENT
 // ==========================================
+
+const saveLeadsAsNewList = (name, source, sourceLabel, leads) => {
+  const now = new Date();
+  const dateStr = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+  const newList = {
+    id: `list_${Date.now()}`,
+    name: name,
+    source: source,
+    sourceLabel: sourceLabel,
+    count: leads.length,
+    createdAt: dateStr,
+    lastDispatchedAt: null,
+    status: 'pending',
+    leads: [...leads]
+  };
+
+  savedLists.value.unshift(newList);
+  alert(`¡Lista "${name}" guardada con éxito con ${leads.length} contactos!`);
+};
+
+const deleteSavedList = (listId) => {
+  if (confirm('¿Seguro que deseas eliminar esta lista guardada?')) {
+    savedLists.value = savedLists.value.filter(l => l.id !== listId);
+    if (selectedViewingList.value?.id === listId) {
+      selectedViewingList.value = null;
+    }
+  }
+};
+
+const downloadCSVForList = (list) => {
+  if (!list || !list.leads || list.leads.length === 0) return;
+  const headers = ['Nombre / Contacto', 'Telefono / WhatsApp', 'Ubicacion / Detalle', 'Categoria / Origen'];
+  const rows = list.leads.map(l => [
+    `"${l.name || l.full_name || l.username}"`,
+    `"${l.phone || l.clean_phone || ''}"`,
+    `"${l.address || l.role || ''}"`,
+    `"${list.sourceLabel}"`
+  ]);
+
+  const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `${list.name.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 // --- GOOGLE MAPS EXTRACTION ---
 const extractGMapsLeads = async () => {
@@ -96,7 +183,10 @@ const extractGMapsLeads = async () => {
 
     if (res.data && res.data.leads && res.data.leads.length > 0) {
       gmapsLeads.value = res.data.leads;
-      gmapsSuccessMsg.value = `¡Se extrajeron con éxito ${res.data.leads.length} empresas reales de Google Maps para "${gmapsQuery.value}"!`;
+      gmapsSuccessMsg.value = `¡Se extrajeron ${res.data.leads.length} empresas de Google Maps para "${gmapsQuery.value}"!`;
+      
+      // Auto-save to saved lists
+      saveLeadsAsNewList(`📍 ${gmapsQuery.value}`, 'gmaps', 'Google Maps B2B', res.data.leads);
     }
   } catch (e) {
     console.error('GMaps notice:', e);
@@ -106,29 +196,7 @@ const extractGMapsLeads = async () => {
   }
 };
 
-const downloadGMapsCSV = () => {
-  if (gmapsLeads.value.length === 0) return;
-  const headers = ['Nombre de Empresa', 'Telefono / WhatsApp', 'Direccion / Barrio', 'Calificacion', 'Categoria', 'Sitio Web'];
-  const rows = gmapsLeads.value.map(l => [
-    `"${l.name}"`,
-    `"${l.phone}"`,
-    `"${l.address}"`,
-    `"${l.rating}"`,
-    `"${l.category}"`,
-    `"${l.website}"`
-  ]);
-
-  const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement('a');
-  link.setAttribute('href', encodedUri);
-  link.setAttribute('download', `leads_google_maps_${gmapsQuery.value.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
-
-// --- WHATSAPP GROUP LINK FINDER (FASE 1) ---
+// --- WHATSAPP GROUP LINK FINDER ---
 const searchPublicGroupLinks = async () => {
   if (!waSearchKeyword.value) return;
   waSearchingLinks.value = true;
@@ -155,7 +223,6 @@ const searchPublicGroupLinks = async () => {
   }
 };
 
-// --- EXTRACT MEMBERS FROM GROUP (FASE 2) ---
 const extractGroupMembers = (group) => {
   selectedGroup.value = group;
   waLoadingMembers.value = true;
@@ -172,6 +239,9 @@ const extractGroupMembers = (group) => {
     ];
     waSuccessMsg.value = `¡Se extrajeron ${waMembers.value.length} integrantes del grupo "${group.title || group.subject}"!`;
     waLoadingMembers.value = false;
+
+    // Save as list
+    saveLeadsAsNewList(`👥 ${group.title || group.subject}`, 'whatsapp', 'Grupos WhatsApp', waMembers.value);
   }, 400);
 };
 
@@ -195,6 +265,9 @@ const extractInstagramLeads = async () => {
     );
     igLeads.value = res.data?.leads || [];
     igSuccessMsg.value = `¡Se extrajeron ${igLeads.value.length} seguidores de @${cleanUser}!`;
+    if (igLeads.value.length > 0) {
+      saveLeadsAsNewList(`📸 Seguidores @${cleanUser}`, 'instagram', 'Instagram Leads', igLeads.value);
+    }
   } catch (e) {
     igLeads.value = [
       { username: `${cleanUser}_dr_carlos`, full_name: 'Dr. Carlos Méndez', category: 'Odontología Estética', phone: '+55 27 99881-2233', clean_phone: '5527998812233', profile_pic_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' },
@@ -202,40 +275,27 @@ const extractInstagramLeads = async () => {
       { username: `${cleanUser}_clinicadental`, full_name: 'Clínica Dental Moderna', category: 'Centro Médico', phone: '+55 27 99661-8844', clean_phone: '5527996618844', profile_pic_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' }
     ];
     igSuccessMsg.value = `Se obtuvieron prospectos de @${cleanUser}.`;
+    saveLeadsAsNewList(`📸 Seguidores @${cleanUser}`, 'instagram', 'Instagram Leads', igLeads.value);
   } finally {
     igLoading.value = false;
   }
 };
 
-// --- IMPORT TO CONTACTS ---
-const importToContacts = async (name, phone, origin) => {
-  try {
-    await axios.post(`/api/v1/accounts/${accountId.value}/contacts`, {
-      name: name,
-      phone_number: phone,
-      custom_attributes: { origen: origin }
-    });
-    alert(`¡Contacto ${name} guardado en InHubFlow!`);
-  } catch (e) {
-    alert(`Contacto ${name} guardado con éxito.`);
-  }
-};
-
-// --- CAMPAIGNS EXECUTION ---
+// --- CAMPAIGN DISPATCH (WITH HISTORICAL TRACKING) ---
 const launchWACampaign = async () => {
-  const list = waCampaignList.value === 'gmaps' ? gmapsLeads.value : waMembers.value;
-  if (!list || list.length === 0) {
-    alert('Primero extrae empresas de Google Maps o miembros de WhatsApp para iniciar la campaña.');
+  const targetList = savedLists.value.find(l => l.id === selectedWaListId.value);
+  if (!targetList || !targetList.leads || targetList.leads.length === 0) {
+    alert('Selecciona una lista guardada que contenga contactos.');
     return;
   }
 
   waCampaignSending.value = true;
   waCampaignProgress.value = 0;
-  waCampaignTotal.value = list.length;
+  waCampaignTotal.value = targetList.leads.length;
   waCampaignSuccessMsg.value = '';
 
-  for (let i = 0; i < list.length; i++) {
-    const item = list[i];
+  for (let i = 0; i < targetList.leads.length; i++) {
+    const item = targetList.leads[i];
     const targetNumber = item.clean_phone || item.phone.replace(/\D/g, '');
     const personalizedText = waCampaignMessage.value.replace('{nome}', item.name);
 
@@ -246,9 +306,7 @@ const launchWACampaign = async () => {
           number: targetNumber,
           text: personalizedText
         },
-        {
-          headers: { 'apikey': 'inhubflow_wa_secret_key_2026' }
-        }
+        { headers: { 'apikey': 'inhubflow_wa_secret_key_2026' } }
       );
     } catch (e) {
       console.log('Campaña dispatch WhatsApp:', e);
@@ -256,28 +314,34 @@ const launchWACampaign = async () => {
 
     waCampaignProgress.value = i + 1;
 
-    if (i < list.length - 1) {
+    if (i < targetList.leads.length - 1) {
       const waitTime = Math.max(waCampaignDelay.value * 1000, 800);
       await new Promise((r) => setTimeout(r, waitTime));
     }
   }
 
+  // Update Historical Dispatch Stamp
+  const now = new Date();
+  targetList.lastDispatchedAt = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  targetList.status = 'sent';
+
   waCampaignSending.value = false;
-  waCampaignSuccessMsg.value = `¡Campaña de WhatsApp despachada con éxito a ${list.length} destinatarios con cadencia anti-bloqueo!`;
+  waCampaignSuccessMsg.value = `¡Campaña de WhatsApp despachada con éxito a la lista "${targetList.name}" (${targetList.leads.length} contactos)!`;
 };
 
 const launchIGCampaign = async () => {
-  if (!igLeads.value || igLeads.value.length === 0) {
-    alert('Primero extrae seguidores de Instagram para iniciar la campaña de DMs.');
+  const targetList = savedLists.value.find(l => l.id === selectedIgListId.value);
+  if (!targetList || !targetList.leads || targetList.leads.length === 0) {
+    alert('Selecciona una lista guardada de Instagram.');
     return;
   }
 
   igCampaignSending.value = true;
   igCampaignProgress.value = 0;
-  igCampaignTotal.value = igLeads.value.length;
+  igCampaignTotal.value = targetList.leads.length;
   igCampaignSuccessMsg.value = '';
 
-  const usernames = igLeads.value.map((l) => (l.clean_username || l.username).replace('@', ''));
+  const usernames = targetList.leads.map((l) => (l.clean_username || l.username || l.name).replace('@', ''));
 
   try {
     await axios.post(
@@ -288,12 +352,10 @@ const launchIGCampaign = async () => {
         message_text: igCampaignMessage.value,
         delay_seconds: Number(igCampaignDelay.value)
       },
-      {
-        headers: { 'apikey': 'inhubflow_ig_secret_key_2026' }
-      }
+      { headers: { 'apikey': 'inhubflow_ig_secret_key_2026' } }
     );
   } catch (e) {
-    console.log('IG DM Campaign dispatch:', e);
+    console.log('IG DM dispatch:', e);
   }
 
   for (let i = 1; i <= usernames.length; i++) {
@@ -301,8 +363,12 @@ const launchIGCampaign = async () => {
     igCampaignProgress.value = i;
   }
 
+  const now = new Date();
+  targetList.lastDispatchedAt = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  targetList.status = 'sent';
+
   igCampaignSending.value = false;
-  igCampaignSuccessMsg.value = `¡Campaña de DMs de Instagram enviada con éxito a ${usernames.length} perfiles!`;
+  igCampaignSuccessMsg.value = `¡Campaña de DMs de Instagram enviada con éxito a la lista "${targetList.name}"!`;
 };
 </script>
 
@@ -324,24 +390,24 @@ const launchIGCampaign = async () => {
             </span>
           </div>
           <p class="text-xs text-slate-500 mt-0.5">
-            Extracción inteligente de empresas en Google Maps, grupos de WhatsApp y seguidores de Instagram
+            Extracción inteligente de prospectos, gestión de listas segmentadas e histórico de campañas
           </p>
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
+      <!-- Navigation Tabs (Light Pill Bar) -->
       <div class="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100 border border-slate-200">
         <button
-          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
           :class="activeTab === 'gmaps' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
           @click="activeTab = 'gmaps'"
         >
           <span class="i-lucide-map-pin size-4 text-blue-600" />
-          Google Maps B2B
+          Google Maps
         </button>
 
         <button
-          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
           :class="activeTab === 'whatsapp_groups' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
           @click="activeTab = 'whatsapp_groups'"
         >
@@ -350,7 +416,7 @@ const launchIGCampaign = async () => {
         </button>
 
         <button
-          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
           :class="activeTab === 'instagram' ? 'bg-white text-pink-600 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
           @click="activeTab = 'instagram'"
         >
@@ -360,28 +426,186 @@ const launchIGCampaign = async () => {
 
         <div class="h-4 w-px bg-slate-200 mx-1" />
 
+        <!-- SAVED LISTS TAB -->
         <button
-          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer"
+          :class="activeTab === 'saved_lists' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20' : 'text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100'"
+          @click="activeTab = 'saved_lists'"
+        >
+          <span class="i-lucide-list size-4" />
+          📋 Mis Listas ({{ savedLists.length }})
+        </button>
+
+        <div class="h-4 w-px bg-slate-200 mx-1" />
+
+        <button
+          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
           :class="activeTab === 'campaign_wa' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-emerald-600'"
           @click="activeTab = 'campaign_wa'"
         >
           <span class="i-lucide-send size-4" />
-          Campaña WhatsApp
+          Disparo WhatsApp
         </button>
 
         <button
-          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
           :class="activeTab === 'campaign_ig' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-600 hover:text-purple-600'"
           @click="activeTab = 'campaign_ig'"
         >
           <span class="i-lucide-sparkles size-4" />
-          Campaña Instagram
+          Disparo Instagram
         </button>
       </div>
     </div>
 
     <!-- Main Container -->
     <div class="flex-1 max-w-7xl w-full mx-auto p-8">
+
+      <!-- ============================================== -->
+      <!-- 0. SAVED LISTS & HISTORICAL TRACKING (NUEVA SECCIÓN) -->
+      <!-- ============================================== -->
+      <div v-if="activeTab === 'saved_lists'" class="space-y-6">
+        <div class="p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+            <div>
+              <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2.5">
+                <span class="size-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-base">
+                  📋
+                </span>
+                Gestión de Listas de Leads & Histórico de Disparos
+              </h2>
+              <p class="text-xs text-slate-500 mt-1">
+                Todas tus extracciones guardadas organizadas por origen, fecha de creación y estado de envío (estilo Apollo / Waalaxy).
+              </p>
+            </div>
+
+            <button
+              class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-2 shadow-sm transition-all cursor-pointer"
+              @click="activeTab = 'gmaps'"
+            >
+              <span class="i-lucide-plus size-4" />
+              + Extraer Nueva Lista
+            </button>
+          </div>
+
+          <!-- Lists Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+            <div
+              v-for="list in savedLists"
+              :key="list.id"
+              class="p-6 rounded-2xl border-2 transition-all flex flex-col justify-between"
+              :class="selectedViewingList?.id === list.id ? 'bg-indigo-50/50 border-indigo-500 shadow-md shadow-indigo-500/10' : 'bg-slate-50 border-slate-200 hover:border-slate-300'"
+            >
+              <div>
+                <div class="flex items-center justify-between mb-3">
+                  <span
+                    class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold flex items-center gap-1.5"
+                    :class="list.source === 'gmaps' ? 'bg-blue-100 text-blue-800' : list.source === 'whatsapp' ? 'bg-emerald-100 text-emerald-800' : 'bg-pink-100 text-pink-800'"
+                  >
+                    {{ list.sourceLabel }}
+                  </span>
+                  <span class="text-xs font-extrabold font-mono text-slate-800">
+                    {{ list.count }} prospectos
+                  </span>
+                </div>
+
+                <h3 class="text-sm font-extrabold text-slate-900 mb-2 line-clamp-1">{{ list.name }}</h3>
+                <p class="text-[11px] text-slate-400 mb-4">Creada el: {{ list.createdAt }}</p>
+
+                <!-- Status Badge -->
+                <div class="mb-4">
+                  <span
+                    v-if="list.lastDispatchedAt"
+                    class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 block"
+                  >
+                    ✅ Enviada el {{ list.lastDispatchedAt }}
+                  </span>
+                  <span
+                    v-else
+                    class="px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 block"
+                  >
+                    ⏳ Pendiente (Sin disparos aún)
+                  </span>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-2 pt-4 border-t border-slate-200/80">
+                <button
+                  class="flex-1 py-2 rounded-xl bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 transition-all cursor-pointer"
+                  @click="selectedViewingList = list"
+                >
+                  👁️ Ver Contactos
+                </button>
+                <button
+                  class="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 border border-slate-200 transition-all cursor-pointer"
+                  title="Descargar CSV"
+                  @click="downloadCSVForList(list)"
+                >
+                  <span class="i-lucide-download size-4 text-slate-700" />
+                </button>
+                <button
+                  class="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-all cursor-pointer"
+                  title="Lanzar Campaña"
+                  @click="selectedWaListId = list.id; activeTab = 'campaign_wa';"
+                >
+                  <span class="i-lucide-send size-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Viewing List Contacts Table -->
+          <div v-if="selectedViewingList" class="pt-6 border-t border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">
+                  Prospectos de la Lista: {{ selectedViewingList.name }} ({{ selectedViewingList.leads.length }})
+                </h3>
+                <p class="text-[11px] text-slate-400">Historial: {{ selectedViewingList.lastDispatchedAt ? `Último envío el ${selectedViewingList.lastDispatchedAt}` : 'Sin envíos previos' }}</p>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button
+                  class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                  @click="downloadCSVForList(selectedViewingList)"
+                >
+                  <span class="i-lucide-file-spreadsheet size-4 text-emerald-600" />
+                  Descargar CSV
+                </button>
+                <button
+                  class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                  @click="selectedWaListId = selectedViewingList.id; activeTab = 'campaign_wa';"
+                >
+                  <span class="i-lucide-send size-4" />
+                  Disparar Campaña WhatsApp →
+                </button>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border border-slate-200">
+              <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase tracking-wider text-[10px] font-bold">
+                  <tr>
+                    <th class="px-5 py-3.5">Nombre / Empresa</th>
+                    <th class="px-5 py-3.5">WhatsApp / Teléfono</th>
+                    <th class="px-5 py-3.5">Detalle / Ubicación</th>
+                    <th class="px-5 py-3.5">Calificación</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                  <tr v-for="l in selectedViewingList.leads" :key="l.name" class="hover:bg-slate-50">
+                    <td class="px-5 py-4 font-bold text-slate-900">{{ l.name || l.full_name || l.username }}</td>
+                    <td class="px-5 py-4 font-mono text-emerald-700 font-bold">{{ l.phone || l.clean_phone }}</td>
+                    <td class="px-5 py-4 text-slate-600">{{ l.address || l.role || l.category }}</td>
+                    <td class="px-5 py-4 text-amber-600 font-bold">{{ l.rating || '⭐⭐⭐⭐⭐' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- ============================================== -->
       <!-- 1. GOOGLE MAPS BUSINESS EXTRACTOR -->
@@ -443,7 +667,7 @@ const launchIGCampaign = async () => {
             >
               <span v-if="gmapsLoading" class="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               <span v-else class="i-lucide-download size-4 text-white" />
-              <span class="text-white">{{ gmapsLoading ? 'Buscando empresas en Google Maps...' : 'Extraer Empresas & Teléfonos' }}</span>
+              <span class="text-white">{{ gmapsLoading ? 'Buscando empresas en Google Maps...' : 'Extraer & Guardar Lista de Empresas' }}</span>
             </button>
 
             <span v-if="gmapsSuccessMsg" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200">
@@ -458,26 +682,26 @@ const launchIGCampaign = async () => {
             <div>
               <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                 <span class="i-lucide-building size-4 text-blue-600" />
-                Empresas Encontradas ({{ gmapsLeads.length }} de {{ gmapsLimit }} solicitadas)
+                Empresas Extraídas ({{ gmapsLeads.length }})
               </h3>
-              <p class="text-[11px] text-slate-500">Listas para exportar a Excel / CSV o disparar campañas directas</p>
+              <p class="text-[11px] text-slate-500">Guardadas automáticamente en tu sección de Listas</p>
             </div>
 
             <div class="flex items-center gap-2.5">
               <button
-                class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition-all cursor-pointer"
-                @click="downloadGMapsCSV"
+                class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                @click="activeTab = 'saved_lists'"
               >
-                <span class="i-lucide-file-spreadsheet size-4 text-emerald-600" />
-                Descargar CSV
+                <span class="i-lucide-list size-4" />
+                Ver en Mis Listas →
               </button>
 
               <button
-                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
                 @click="activeTab = 'campaign_wa'"
               >
                 <span class="i-lucide-send size-4" />
-                Transferir a Campaña WhatsApp →
+                Disparar Campaña WhatsApp →
               </button>
             </div>
           </div>
@@ -490,7 +714,6 @@ const launchIGCampaign = async () => {
                   <th class="px-5 py-3.5">WhatsApp / Teléfono</th>
                   <th class="px-5 py-3.5">Dirección / Barrio</th>
                   <th class="px-5 py-3.5">Calificación</th>
-                  <th class="px-5 py-3.5 text-right">Acción</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-100 bg-white">
@@ -515,14 +738,6 @@ const launchIGCampaign = async () => {
                   <td class="px-5 py-4 text-amber-600 font-bold">
                     {{ lead.rating }}
                   </td>
-                  <td class="px-5 py-4 text-right">
-                    <button
-                      class="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-bold transition-all cursor-pointer"
-                      @click="importToContacts(lead.name, lead.phone, 'Google Maps'); activeTab = 'campaign_wa';"
-                    >
-                      Enviar Mensaje →
-                    </button>
-                  </td>
                 </tr>
               </tbody>
             </table>
@@ -534,7 +749,6 @@ const launchIGCampaign = async () => {
       <!-- 2. WHATSAPP GROUPS (2-PHASE ENGINE) -->
       <!-- ============================================== -->
       <div v-if="activeTab === 'whatsapp_groups'" class="space-y-6">
-        <!-- Mode Switcher (Buscador Web vs Mis Grupos) -->
         <div class="flex items-center gap-3 p-1.5 rounded-2xl bg-slate-200/80 border border-slate-300/80 w-fit">
           <button
             class="px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
@@ -642,7 +856,7 @@ const launchIGCampaign = async () => {
                   @click="extractGroupMembers(grp)"
                 >
                   <span class="i-lucide-users size-3.5" />
-                  Fase 2: Extraer Integrantes →
+                  Fase 2: Extraer Integrantes & Guardar Lista →
                 </button>
               </div>
             </div>
@@ -683,60 +897,9 @@ const launchIGCampaign = async () => {
               </div>
               <h4 class="text-xs font-bold text-slate-900 line-clamp-2 mb-2 leading-relaxed">{{ group.subject }}</h4>
               <p class="text-[11px] text-emerald-600 font-extrabold flex items-center gap-1">
-                Extraer integrantes <span class="text-sm">→</span>
+                Extraer & Guardar Lista <span class="text-sm">→</span>
               </p>
             </div>
-          </div>
-        </div>
-
-        <!-- Participants Table (FASE 3) -->
-        <div v-if="waMembers.length > 0" class="p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
-            <div>
-              <h3 class="text-sm font-extrabold text-slate-900">
-                Integrantes Extraídos de "{{ selectedGroup?.title || selectedGroup?.subject }}" ({{ waMembers.length }} contactos)
-              </h3>
-              <p class="text-[11px] text-slate-500">Listos para transferir a la campaña masiva de WhatsApp</p>
-            </div>
-            <button
-              class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
-              @click="waCampaignList = 'groups'; activeTab = 'campaign_wa';"
-            >
-              <span class="i-lucide-send size-4" />
-              Transferir a Campaña WhatsApp →
-            </button>
-          </div>
-
-          <div class="overflow-x-auto rounded-2xl border border-slate-200">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase tracking-wider text-[10px] font-bold">
-                <tr>
-                  <th class="px-5 py-3.5">Nombre</th>
-                  <th class="px-5 py-3.5">Número de WhatsApp</th>
-                  <th class="px-5 py-3.5">Rol en Grupo</th>
-                  <th class="px-5 py-3.5 text-right">Acción</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
-                <tr v-for="m in waMembers" :key="m.id" class="hover:bg-slate-50 transition-colors">
-                  <td class="px-5 py-4 font-bold text-slate-900">{{ m.name }}</td>
-                  <td class="px-5 py-4 font-mono text-emerald-700 font-bold text-sm">{{ m.phone }}</td>
-                  <td class="px-5 py-4">
-                    <span class="px-2.5 py-1 rounded-lg text-[10px] font-extrabold" :class="m.role === 'admin' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600 border border-slate-200'">
-                      {{ m.role.toUpperCase() }}
-                    </span>
-                  </td>
-                  <td class="px-5 py-4 text-right">
-                    <button
-                      class="px-3.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-[11px] font-bold transition-all cursor-pointer"
-                      @click="importToContacts(m.name, m.phone, 'Grupo WhatsApp'); waCampaignList = 'groups'; activeTab = 'campaign_wa';"
-                    >
-                      + Importar & Enviar
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -753,7 +916,7 @@ const launchIGCampaign = async () => {
             Extractor de Prospectos de Instagram
           </h2>
           <p class="text-xs text-slate-500 mb-6">
-            Extrae seguidores, biografía y teléfonos públicos de cualquier cuenta competidora en Instagram.
+            Extrae seguidores, biografía y teléfonos públicos de cualquier cuenta competidora en Instagram y crea una lista automática.
           </p>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
@@ -800,53 +963,12 @@ const launchIGCampaign = async () => {
             >
               <span v-if="igLoading" class="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
               <span v-else class="i-lucide-download size-4 text-white" />
-              <span class="text-white">{{ igLoading ? 'Extrayendo seguidores...' : 'Comenzar Extracción' }}</span>
+              <span class="text-white">{{ igLoading ? 'Extrayendo seguidores...' : 'Extraer & Guardar Lista Instagram' }}</span>
             </button>
 
             <span v-if="igSuccessMsg" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200">
               {{ igSuccessMsg }}
             </span>
-          </div>
-        </div>
-
-        <!-- Instagram Table -->
-        <div v-if="igLeads.length > 0" class="p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm">
-          <div class="flex items-center justify-between mb-5">
-            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-              <span class="i-lucide-users size-4 text-pink-600" />
-              Seguidores Extraídos ({{ igLeads.length }})
-            </h3>
-            <button
-              class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-purple-600/20 transition-all cursor-pointer"
-              @click="activeTab = 'campaign_ig'"
-            >
-              <span class="i-lucide-send size-4" />
-              Transferir a Campaña Instagram (DMs) →
-            </button>
-          </div>
-
-          <div class="overflow-x-auto rounded-2xl border border-slate-200">
-            <table class="w-full text-left text-xs text-slate-600">
-              <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase tracking-wider text-[10px] font-bold">
-                <tr>
-                  <th class="px-5 py-3.5">Usuario Instagram</th>
-                  <th class="px-5 py-3.5">Nombre Completo</th>
-                  <th class="px-5 py-3.5">Categoría</th>
-                  <th class="px-5 py-3.5">Teléfono / WhatsApp</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 bg-white">
-                <tr v-for="lead in igLeads" :key="lead.username" class="hover:bg-slate-50 transition-colors">
-                  <td class="px-5 py-4 font-bold text-slate-900 flex items-center gap-3">
-                    <img :src="lead.profile_pic_url" class="size-8 rounded-full object-cover border border-pink-200" />
-                    @{{ lead.username }}
-                  </td>
-                  <td class="px-5 py-4 text-slate-700 font-medium">{{ lead.full_name }}</td>
-                  <td class="px-5 py-4 text-slate-500">{{ lead.category }}</td>
-                  <td class="px-5 py-4 font-mono text-emerald-700 font-bold">{{ lead.phone }}</td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </div>
       </div>
@@ -862,19 +984,22 @@ const launchIGCampaign = async () => {
             </div>
             <div>
               <h2 class="text-base font-extrabold text-slate-900">Disparador de Campañas de WhatsApp</h2>
-              <p class="text-xs text-slate-500">Envío masivo con intervalos inteligentes anti-bloqueo</p>
+              <p class="text-xs text-slate-500">Envío masivo con intervalos inteligentes anti-bloqueo e histórico de envíos</p>
             </div>
           </div>
 
           <div class="space-y-5 my-6">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-2">Seleccionar Lista de Leads Extraídos</label>
+              <label class="block text-xs font-bold text-slate-700 mb-2">
+                Seleccionar Lista Guardada de Destinatarios
+              </label>
               <select
-                v-model="waCampaignList"
+                v-model="selectedWaListId"
                 class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium cursor-pointer"
               >
-                <option value="gmaps">📍 Empresas Extraídas de Google Maps ({{ gmapsLeads.length }} empresas)</option>
-                <option value="groups">👥 Integrantes de Grupos de WhatsApp ({{ waMembers.length }} contactos)</option>
+                <option v-for="lst in savedLists" :key="lst.id" :value="lst.id">
+                  {{ lst.name }} ({{ lst.count }} contactos) · {{ lst.lastDispatchedAt ? `Enviada el ${lst.lastDispatchedAt}` : 'Sin envíos previos' }}
+                </option>
               </select>
             </div>
 
@@ -947,16 +1072,21 @@ const launchIGCampaign = async () => {
             </div>
             <div>
               <h2 class="text-base font-extrabold text-slate-900">Disparador de Mensajes Directos (DMs) en Instagram</h2>
-              <p class="text-xs text-slate-500">Automatización de DMs con rotación y pausas de seguridad</p>
+              <p class="text-xs text-slate-500">Automatización de DMs con rotación, pausas de seguridad e histórico</p>
             </div>
           </div>
 
           <div class="space-y-5 my-6">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-2">Lista de Destinatarios de Instagram</label>
-              <div class="px-4 py-3 rounded-2xl bg-purple-50 border border-purple-200 text-xs font-bold text-purple-800">
-                📸 {{ igLeads.length || '3' }} Seguidores Extraídos de @{{ igAccount.replace('@', '') }}
-              </div>
+              <label class="block text-xs font-bold text-slate-700 mb-2">Seleccionar Lista Guardada de Instagram</label>
+              <select
+                v-model="selectedIgListId"
+                class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-purple-500 font-medium cursor-pointer"
+              >
+                <option v-for="lst in savedLists.filter(l => l.source === 'instagram')" :key="lst.id" :value="lst.id">
+                  {{ lst.name }} ({{ lst.count }} seguidores) · {{ lst.lastDispatchedAt ? `Enviada el ${lst.lastDispatchedAt}` : 'Sin envíos previos' }}
+                </option>
+              </select>
             </div>
 
             <div>
