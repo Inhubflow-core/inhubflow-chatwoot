@@ -7,7 +7,6 @@ WORKDIR /app
 ENV RAILS_ENV=production
 ENV NODE_ENV=production
 ENV RAILS_SERVE_STATIC_FILES=true
-ENV BUNDLE_PATH="/gems"
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 
 # Copy node from node stage and install pnpm
@@ -20,8 +19,10 @@ RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm && \
 # Copy modified application files
 COPY . /app
 
-# Install frontend dependencies and compile modified assets
-RUN pnpm install --frozen-lockfile && \
+# Sync any missing gem definitions, install node packages and compile assets
+RUN bundle config set without 'development test' && \
+    bundle install -j $(nproc) && \
+    pnpm install --frozen-lockfile && \
     SECRET_KEY_BASE=precompile_placeholder RAILS_LOG_TO_STDOUT=enabled bundle exec rake assets:precompile && \
     rm -rf spec node_modules tmp/cache
 
