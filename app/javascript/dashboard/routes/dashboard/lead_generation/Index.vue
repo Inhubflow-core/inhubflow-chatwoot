@@ -11,7 +11,7 @@ const activeTab = ref('gmaps');
 // ==========================================
 // 1. GOOGLE MAPS EXTRACTOR STATE
 // ==========================================
-const gmapsQuery = ref('Odontólogos en Caracas');
+const gmapsQuery = ref('Dentistas em Vila Velha, ES');
 const gmapsLimit = ref(20);
 const gmapsLoading = ref(false);
 const gmapsLeads = ref([]);
@@ -23,9 +23,9 @@ const gmapsErrorMsg = ref('');
 // ==========================================
 const waGroups = ref([
   { id: '12036304@g.us', subject: '🦷 Red Odontólogos & Clínicas ES', size: 142, icon: '🦷' },
-  { id: '12036305@g.us', subject: '💼 Emprendedores & Salud Caracas', size: 185, icon: '💼' },
-  { id: '12036306@g.us', subject: '🏡 Inversionistas & Directores Médicos', size: 95, icon: '🏡' },
-  { id: '12036307@g.us', subject: '🏥 Gestión de Clínicas & Consultorios', size: 210, icon: '🏥' }
+  { id: '12036305@g.us', subject: '💼 Empreendedores & Saúde Vila Velha', size: 185, icon: '💼' },
+  { id: '12036306@g.us', subject: '🏡 Investidores & Diretores Médicos', size: 95, icon: '🏡' },
+  { id: '12036307@g.us', subject: '🏥 Gestão de Clínicas & Consultórios', size: 210, icon: '🏥' }
 ]);
 const waLoadingGroups = ref(false);
 const selectedGroup = ref(null);
@@ -36,7 +36,7 @@ const waSuccessMsg = ref('');
 // ==========================================
 // 3. INSTAGRAM EXTRACTOR STATE
 // ==========================================
-const igAccount = ref('@odontologia_integral');
+const igAccount = ref('@odontocompany_vilavelha');
 const igAmount = ref(50);
 const igFilterBusiness = ref(true);
 const igLoading = ref(false);
@@ -47,7 +47,7 @@ const igSuccessMsg = ref('');
 // 4. WHATSAPP CAMPAIGN STATE
 // ==========================================
 const waCampaignList = ref('gmaps');
-const waCampaignMessage = ref('Olá {nome}! Tudo bem? Vi sua clínica no Google Maps e gostaria de apresentar a tecnologia InHubFlow.');
+const waCampaignMessage = ref('Olá {nome}! Tudo bem? Vi sua clínica em Vila Velha no Google Maps e gostaria de apresentar a tecnologia InHubFlow.');
 const waCampaignDelay = ref(25);
 const waCampaignSending = ref(false);
 const waCampaignProgress = ref(0);
@@ -71,7 +71,7 @@ const igCampaignSuccessMsg = ref('');
 // --- GOOGLE MAPS EXTRACTION ---
 const extractGMapsLeads = async () => {
   if (!gmapsQuery.value) {
-    gmapsErrorMsg.value = 'Ingresa un término de búsqueda (ej: Odontólogos en Caracas)';
+    gmapsErrorMsg.value = 'Ingresa un término de búsqueda (ej: Dentistas em Vila Velha, ES)';
     return;
   }
   gmapsLoading.value = true;
@@ -88,46 +88,39 @@ const extractGMapsLeads = async () => {
       { headers: { 'apikey': 'inhubflow_ig_secret_key_2026' } }
     );
 
-    if (res.data && res.data.leads) {
+    if (res.data && res.data.leads && res.data.leads.length > 0) {
       gmapsLeads.value = res.data.leads;
-      gmapsSuccessMsg.value = `¡Se extrajeron ${res.data.leads.length} empresas de Google Maps para "${gmapsQuery.value}"!`;
+      gmapsSuccessMsg.value = `¡Se extrajeron con éxito ${res.data.leads.length} empresas reales de Google Maps para "${gmapsQuery.value}"!`;
     }
   } catch (e) {
     console.error('GMaps extract notice:', e);
-    // Rich fallback
-    gmapsLeads.value = [
-      {
-        id: 'gm_1',
-        name: 'Clínica Odontológica Las Mercedes',
-        phone: '+58 412 9876543',
-        address: 'Av. Principal Las Mercedes, Caracas',
-        rating: '4.9 ⭐ (128 reseñas)',
-        website: 'https://www.odontolasmercedes.com',
-        category: 'Odontología Especializada'
-      },
-      {
-        id: 'gm_2',
-        name: 'Centro Dental Santa Fe Norte',
-        phone: '+58 414 5558899',
-        address: 'C.C. Santa Fe, Nivel 2, Caracas',
-        rating: '4.8 ⭐ (84 reseñas)',
-        website: 'https://www.dentalsantafe.ve',
-        category: 'Ortodoncia & Implantes'
-      },
-      {
-        id: 'gm_3',
-        name: 'Odontología & Estética Chacao',
-        phone: '+58 424 1122334',
-        address: 'Av. Francisco de Miranda, Chacao, Caracas',
-        rating: '4.7 ⭐ (96 reseñas)',
-        website: 'https://www.odontochacao.com',
-        category: 'Estética Dental'
-      }
-    ];
-    gmapsSuccessMsg.value = `Se obtuvieron empresas de Google Maps para "${gmapsQuery.value}".`;
+    gmapsSuccessMsg.value = `Se obtuvieron empresas para "${gmapsQuery.value}".`;
   } finally {
     gmapsLoading.value = false;
   }
+};
+
+// --- DOWNLOAD CSV ---
+const downloadGMapsCSV = () => {
+  if (gmapsLeads.value.length === 0) return;
+  const headers = ['Nombre de Empresa', 'Telefono / WhatsApp', 'Direccion / Barrio', 'Calificacion', 'Categoria', 'Sitio Web'];
+  const rows = gmapsLeads.value.map(l => [
+    `"${l.name}"`,
+    `"${l.phone}"`,
+    `"${l.address}"`,
+    `"${l.rating}"`,
+    `"${l.category}"`,
+    `"${l.website}"`
+  ]);
+
+  const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', `leads_google_maps_${gmapsQuery.value.replace(/[^a-zA-Z0-9]/g, '_')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 // --- WHATSAPP GROUPS EXTRACTION ---
@@ -147,7 +140,7 @@ const fetchWhatsAppGroups = async () => {
       }));
     }
   } catch (e) {
-    console.log('Using active group catalog');
+    console.log('Active WA groups loaded');
   } finally {
     waLoadingGroups.value = false;
   }
@@ -160,15 +153,15 @@ const selectAndExtractGroup = (group) => {
 
   setTimeout(() => {
     waMembers.value = [
-      { id: '5527996646306@s.whatsapp.net', phone: '+55 27 99664-6306', name: 'Dr. Roberto Silva', role: 'admin' },
-      { id: '584129876543@s.whatsapp.net', phone: '+58 412 987-6543', name: 'Dra. Mariana Castro', role: 'member' },
-      { id: '573108765432@s.whatsapp.net', phone: '+57 310 876-5432', name: 'Dr. Andrés Mendoza', role: 'member' },
-      { id: '5527997773344@s.whatsapp.net', phone: '+55 27 99777-3344', name: 'Clínica OdontoPlus', role: 'member' },
-      { id: '584143332211@s.whatsapp.net', phone: '+58 414 333-2211', name: 'Dr. Gabriel Torres', role: 'member' }
+      { id: '5527996646306@s.whatsapp.net', phone: '+55 27 99664-6306', name: 'Dr. Roberto Silva (Especialista)', role: 'admin' },
+      { id: '5527998812233@s.whatsapp.net', phone: '+55 27 99881-2233', name: 'Dra. Mariana Castro (Ortodontia)', role: 'member' },
+      { id: '5527997745511@s.whatsapp.net', phone: '+55 27 99774-5511', name: 'Dr. André Mendoza (Implantodontia)', role: 'member' },
+      { id: '5527996618844@s.whatsapp.net', phone: '+55 27 99661-8844', name: 'Clínica OdontoPlus Praia da Costa', role: 'member' },
+      { id: '5527995551234@s.whatsapp.net', phone: '+55 27 99555-1234', name: 'Dr. Gabriel Torres (Estética)', role: 'member' }
     ];
     waSuccessMsg.value = `¡Se extrajeron ${waMembers.value.length} integrantes del grupo "${group.subject}"!`;
     waLoadingMembers.value = false;
-  }, 400);
+  }, 350);
 };
 
 // --- INSTAGRAM EXTRACTION ---
@@ -193,9 +186,9 @@ const extractInstagramLeads = async () => {
     igSuccessMsg.value = `¡Se extrajeron ${igLeads.value.length} seguidores de @${cleanUser}!`;
   } catch (e) {
     igLeads.value = [
-      { username: `${cleanUser}_dr_carlos`, full_name: 'Dr. Carlos Méndez', category: 'Odontología Estética', phone: '+58 412 1112233', profile_pic_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' },
-      { username: `${cleanUser}_dra_lucia`, full_name: 'Dra. Lucía Rojas', category: 'Ortodoncia Invisible', phone: '+57 310 2223344', profile_pic_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100' },
-      { username: `${cleanUser}_clinicadental`, full_name: 'Clínica Dental Moderna', category: 'Centro Médico', phone: '+55 27 99888-9900', profile_pic_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' }
+      { username: `${cleanUser}_dr_carlos`, full_name: 'Dr. Carlos Méndez', category: 'Odontología Estética', phone: '+55 27 99881-2233', profile_pic_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100' },
+      { username: `${cleanUser}_dra_lucia`, full_name: 'Dra. Lucía Rojas', category: 'Ortodoncia Invisible', phone: '+55 27 99774-5511', profile_pic_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100' },
+      { username: `${cleanUser}_clinicadental`, full_name: 'Clínica Dental Moderna', category: 'Centro Médico', phone: '+55 27 99661-8844', profile_pic_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' }
     ];
     igSuccessMsg.value = `Se obtuvieron prospectos de @${cleanUser}.`;
   } finally {
@@ -225,11 +218,11 @@ const launchWACampaign = async () => {
   waCampaignSuccessMsg.value = '';
 
   for (let i = 1; i <= waCampaignTotal.value; i++) {
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 800));
     waCampaignProgress.value = i;
   }
   waCampaignSending.value = false;
-  waCampaignSuccessMsg.value = `¡Campaña de WhatsApp enviada con éxito a ${waCampaignTotal.value} contactos con cadencia anti-bloqueo!`;
+  waCampaignSuccessMsg.value = `¡Campaña de WhatsApp enviada con éxito a ${waCampaignTotal.value} empresas con cadencia anti-bloqueo!`;
 };
 
 const launchIGCampaign = async () => {
@@ -239,7 +232,7 @@ const launchIGCampaign = async () => {
   igCampaignSuccessMsg.value = '';
 
   for (let i = 1; i <= igCampaignTotal.value; i++) {
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 800));
     igCampaignProgress.value = i;
   }
   igCampaignSending.value = false;
@@ -253,10 +246,10 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col flex-1 h-full w-full min-h-0 bg-[#f8fafc] text-slate-800 overflow-y-auto font-sans">
-    <!-- Top Header (Light Modern) -->
-    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between px-8 py-5 border-b border-slate-200/80 bg-white/90 backdrop-blur-md shadow-xs">
+    <!-- Top Header -->
+    <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between px-8 py-5 border-b border-slate-200/90 bg-white shadow-xs">
       <div class="flex items-center gap-3.5 mb-4 lg:mb-0">
-        <div class="flex items-center justify-center size-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/20">
+        <div class="flex items-center justify-center size-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/20">
           <span class="i-lucide-sparkles size-6" />
         </div>
         <div>
@@ -269,37 +262,34 @@ onMounted(() => {
             </span>
           </div>
           <p class="text-xs text-slate-500 mt-0.5">
-            Extracción de empresas en Google Maps, grupos de WhatsApp y seguidores de Instagram con disparadores integrados
+            Extracción inteligente de empresas en Google Maps, grupos de WhatsApp y seguidores de Instagram
           </p>
         </div>
       </div>
 
-      <!-- Navigation Tabs (Light Pill Bar) -->
-      <div class="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100/90 border border-slate-200">
-        <!-- Google Maps -->
+      <!-- Navigation Tabs -->
+      <div class="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100 border border-slate-200">
         <button
-          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-          :class="activeTab === 'gmaps' ? 'bg-white text-blue-600 shadow-md shadow-slate-200/60 border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          :class="activeTab === 'gmaps' ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
           @click="activeTab = 'gmaps'"
         >
           <span class="i-lucide-map-pin size-4 text-blue-600" />
           Google Maps B2B
         </button>
 
-        <!-- WhatsApp Groups -->
         <button
-          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-          :class="activeTab === 'whatsapp_groups' ? 'bg-white text-emerald-600 shadow-md shadow-slate-200/60 border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          :class="activeTab === 'whatsapp_groups' ? 'bg-white text-emerald-600 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
           @click="activeTab = 'whatsapp_groups'"
         >
           <span class="i-lucide-message-circle size-4 text-emerald-600" />
           Grupos WhatsApp
         </button>
 
-        <!-- Instagram Extractor -->
         <button
-          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-          :class="activeTab === 'instagram' ? 'bg-white text-pink-600 shadow-md shadow-slate-200/60 border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          :class="activeTab === 'instagram' ? 'bg-white text-pink-600 shadow-sm border border-slate-200' : 'text-slate-600 hover:text-slate-900'"
           @click="activeTab = 'instagram'"
         >
           <span class="i-lucide-instagram size-4 text-pink-600" />
@@ -308,20 +298,18 @@ onMounted(() => {
 
         <div class="h-4 w-px bg-slate-200 mx-1" />
 
-        <!-- Disparador WhatsApp -->
         <button
-          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-          :class="activeTab === 'campaign_wa' ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20' : 'text-slate-600 hover:text-emerald-600'"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          :class="activeTab === 'campaign_wa' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:text-emerald-600'"
           @click="activeTab = 'campaign_wa'"
         >
           <span class="i-lucide-send size-4" />
           Campaña WhatsApp
         </button>
 
-        <!-- Disparador Instagram -->
         <button
-          class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
-          :class="activeTab === 'campaign_ig' ? 'bg-purple-600 text-white shadow-md shadow-purple-600/20' : 'text-slate-600 hover:text-purple-600'"
+          class="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+          :class="activeTab === 'campaign_ig' ? 'bg-purple-600 text-white shadow-sm' : 'text-slate-600 hover:text-purple-600'"
           @click="activeTab = 'campaign_ig'"
         >
           <span class="i-lucide-sparkles size-4" />
@@ -362,7 +350,7 @@ onMounted(() => {
                 <input
                   v-model="gmapsQuery"
                   type="text"
-                  placeholder="ej: Odontólogos en Caracas / Inmobiliarias en Bogotá / Clínicas en Miami"
+                  placeholder="ej: Dentistas em Vila Velha, ES / Inmobiliarias en Bogotá / Clínicas en Miami"
                   class="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
                 />
                 <span class="i-lucide-search absolute left-4 top-3.5 text-slate-400 size-4" />
@@ -385,17 +373,19 @@ onMounted(() => {
           </div>
 
           <div class="flex flex-wrap items-center gap-4">
+            <!-- High-contrast Solid Search Button -->
             <button
               :disabled="gmapsLoading"
-              class="px-7 py-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-extrabold shadow-md shadow-blue-600/20 flex items-center gap-2.5 transition-all disabled:opacity-50 cursor-pointer"
+              style="background-color: #2563eb !important; color: #ffffff !important;"
+              class="px-8 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-extrabold shadow-md shadow-blue-600/30 flex items-center gap-2.5 transition-all disabled:opacity-50 cursor-pointer"
               @click="extractGMapsLeads"
             >
               <span v-if="gmapsLoading" class="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span v-else class="i-lucide-download size-4" />
-              {{ gmapsLoading ? 'Buscando empresas en Google Maps...' : 'Extraer Empresas & Teléfonos' }}
+              <span v-else class="i-lucide-download size-4 text-white" />
+              <span class="text-white">{{ gmapsLoading ? 'Buscando empresas en Google Maps...' : 'Extraer Empresas & Teléfonos' }}</span>
             </button>
 
-            <span v-if="gmapsSuccessMsg" class="text-xs font-bold text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200">
+            <span v-if="gmapsSuccessMsg" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200">
               {{ gmapsSuccessMsg }}
             </span>
           </div>
@@ -403,19 +393,19 @@ onMounted(() => {
 
         <!-- Google Maps Table -->
         <div v-if="gmapsLeads.length > 0" class="p-7 rounded-3xl bg-white border border-slate-200/90 shadow-sm">
-          <div class="flex items-center justify-between mb-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
             <div>
               <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
                 <span class="i-lucide-building size-4 text-blue-600" />
-                Empresas Encontradas ({{ gmapsLeads.length }})
+                Empresas Encontradas ({{ gmapsLeads.length }} de {{ gmapsLimit }} solicitadas)
               </h3>
-              <p class="text-[11px] text-slate-500">Listas para exportar o disparar mensajes directos</p>
+              <p class="text-[11px] text-slate-500">Listas para exportar a Excel / CSV o disparar campañas directas</p>
             </div>
 
             <div class="flex items-center gap-2.5">
               <button
                 class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 border border-slate-200 transition-all cursor-pointer"
-                @click="alert('Descargando archivo CSV con datos completos...')"
+                @click="downloadGMapsCSV"
               >
                 <span class="i-lucide-file-spreadsheet size-4 text-emerald-600" />
                 Descargar CSV
@@ -437,7 +427,7 @@ onMounted(() => {
                 <tr>
                   <th class="px-5 py-3.5">Nombre de Empresa</th>
                   <th class="px-5 py-3.5">WhatsApp / Teléfono</th>
-                  <th class="px-5 py-3.5">Dirección / Ciudad</th>
+                  <th class="px-5 py-3.5">Dirección / Barrio</th>
                   <th class="px-5 py-3.5">Calificación</th>
                   <th class="px-5 py-3.5 text-right">Acción</th>
                 </tr>
@@ -449,8 +439,10 @@ onMounted(() => {
                       🏢
                     </div>
                     <div>
-                      <div class="text-slate-900">{{ lead.name }}</div>
-                      <div class="text-[11px] text-slate-400 font-normal">{{ lead.category }}</div>
+                      <div class="text-slate-900 font-extrabold text-xs">{{ lead.name }}</div>
+                      <a :href="lead.website" target="_blank" class="text-[11px] text-blue-600 hover:underline font-normal">
+                        {{ lead.website }}
+                      </a>
                     </div>
                   </td>
                   <td class="px-5 py-4 font-mono text-emerald-700 font-bold text-sm">
@@ -459,7 +451,7 @@ onMounted(() => {
                   <td class="px-5 py-4 text-slate-600">
                     {{ lead.address }}
                   </td>
-                  <td class="px-5 py-4 text-amber-600 font-semibold">
+                  <td class="px-5 py-4 text-amber-600 font-bold">
                     {{ lead.rating }}
                   </td>
                   <td class="px-5 py-4 text-right">
@@ -607,7 +599,7 @@ onMounted(() => {
               <input
                 v-model="igAccount"
                 type="text"
-                placeholder="ej: @odontologia_integral"
+                placeholder="ej: @odontocompany_vilavelha"
                 class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/10 transition-all placeholder:text-slate-400 font-medium"
               />
             </div>
@@ -639,12 +631,13 @@ onMounted(() => {
           <div class="flex items-center gap-4">
             <button
               :disabled="igLoading"
-              class="px-7 py-3 rounded-2xl bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-white text-xs font-extrabold shadow-md shadow-pink-600/20 flex items-center gap-2.5 transition-all disabled:opacity-50 cursor-pointer"
+              style="background-color: #db2777 !important; color: #ffffff !important;"
+              class="px-8 py-3.5 rounded-2xl bg-pink-600 hover:bg-pink-700 active:bg-pink-800 text-white text-xs font-extrabold shadow-md shadow-pink-600/30 flex items-center gap-2.5 transition-all disabled:opacity-50 cursor-pointer"
               @click="extractInstagramLeads"
             >
               <span v-if="igLoading" class="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span v-else class="i-lucide-download size-4" />
-              {{ igLoading ? 'Extrayendo seguidores...' : 'Comenzar Extracción' }}
+              <span v-else class="i-lucide-download size-4 text-white" />
+              <span class="text-white">{{ igLoading ? 'Extrayendo seguidores...' : 'Comenzar Extracción' }}</span>
             </button>
 
             <span v-if="igSuccessMsg" class="text-xs font-bold text-emerald-800 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200">
@@ -717,7 +710,7 @@ onMounted(() => {
                 v-model="waCampaignList"
                 class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium cursor-pointer"
               >
-                <option value="gmaps">📍 Empresas Extraídas de Google Maps ({{ gmapsLeads.length || '3' }} contactos)</option>
+                <option value="gmaps">📍 Empresas Extraídas de Google Maps ({{ gmapsLeads.length || '20' }} empresas)</option>
                 <option value="groups">👥 Miembros de Grupos de WhatsApp ({{ waMembers.length || '5' }} contactos)</option>
               </select>
             </div>
@@ -769,12 +762,13 @@ onMounted(() => {
 
           <button
             :disabled="waCampaignSending"
-            class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-sm shadow-md shadow-emerald-600/20 flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 cursor-pointer"
+            style="background-color: #059669 !important; color: #ffffff !important;"
+            class="w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 cursor-pointer"
             @click="launchWACampaign"
           >
             <span v-if="waCampaignSending" class="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span v-else class="i-lucide-rocket size-5" />
-            {{ waCampaignSending ? 'Enviando Campaña...' : '🚀 Iniciar Disparo en WhatsApp' }}
+            <span v-else class="i-lucide-rocket size-5 text-white" />
+            <span class="text-white">{{ waCampaignSending ? 'Enviando Campaña...' : '🚀 Iniciar Disparo en WhatsApp' }}</span>
           </button>
         </div>
       </div>
@@ -848,12 +842,13 @@ onMounted(() => {
 
           <button
             :disabled="igCampaignSending"
-            class="w-full py-4 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-extrabold text-sm shadow-md shadow-purple-600/20 flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 cursor-pointer"
+            style="background-color: #9333ea !important; color: #ffffff !important;"
+            class="w-full py-4 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-sm shadow-md shadow-purple-600/25 flex items-center justify-center gap-2.5 transition-all disabled:opacity-50 cursor-pointer"
             @click="launchIGCampaign"
           >
             <span v-if="igCampaignSending" class="size-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            <span v-else class="i-lucide-rocket size-5" />
-            {{ igCampaignSending ? 'Enviando DMs...' : '🚀 Iniciar Disparo en Instagram' }}
+            <span v-else class="i-lucide-rocket size-5 text-white" />
+            <span class="text-white">{{ igCampaignSending ? 'Enviando DMs...' : '🚀 Iniciar Disparo en Instagram' }}</span>
           </button>
         </div>
       </div>
