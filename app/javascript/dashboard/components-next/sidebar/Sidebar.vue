@@ -371,6 +371,13 @@ const reportRoutes = computed(() => newReportRoutes());
 const menuItems = computed(() => {
   return [
     {
+      name: 'Outreach',
+      label: t('SIDEBAR.OUTREACH'),
+      icon: 'i-lucide-sparkles',
+      to: accountScopedRoute('outreach_dashboard_index'),
+      activeOn: ['outreach_dashboard_index'],
+    },
+    {
       name: 'Inbox',
       label: t('SIDEBAR.INBOX'),
       icon: 'i-lucide-inbox',
@@ -677,13 +684,6 @@ const menuItems = computed(() => {
           activeOn: ['companies_dashboard_index', 'companies_dashboard_show'],
         },
       ],
-    },
-    {
-      name: 'Outreach',
-      label: t('SIDEBAR.OUTREACH'),
-      icon: 'i-lucide-send',
-      to: accountScopedRoute('outreach_dashboard_index'),
-      activeOn: ['outreach_dashboard_index'],
     },
     {
       name: 'Reports',
