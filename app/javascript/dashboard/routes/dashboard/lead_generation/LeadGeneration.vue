@@ -390,8 +390,9 @@ const extractInstagramLeads = async () => {
             <table class="w-full text-left text-xs text-slate-600">
               <thead class="bg-slate-50 text-slate-500 border-b border-slate-200 uppercase tracking-wider text-[10px] font-bold">
                 <tr>
-                  <th class="px-5 py-3.5">Nombre de Empresa</th>
+                  <th class="px-5 py-3.5">Empresa / Sitio Web</th>
                   <th class="px-5 py-3.5">WhatsApp / Teléfono</th>
+                  <th class="px-5 py-3.5">Instagram</th>
                   <th class="px-5 py-3.5">Dirección / Barrio</th>
                   <th class="px-5 py-3.5">Calificación</th>
                 </tr>
@@ -404,13 +405,19 @@ const extractInstagramLeads = async () => {
                     </div>
                     <div>
                       <div class="text-slate-900 font-extrabold text-xs">{{ lead.name }}</div>
-                      <a :href="lead.website" target="_blank" class="text-[11px] text-blue-600 hover:underline font-normal">
+                      <a v-if="lead.website" :href="lead.website" target="_blank" class="text-[11px] text-blue-600 hover:underline font-normal">
                         {{ lead.website }}
                       </a>
                     </div>
                   </td>
                   <td class="px-5 py-4 font-mono text-emerald-700 font-bold text-sm">
                     {{ lead.phone }}
+                  </td>
+                  <td class="px-5 py-4">
+                    <span v-if="lead.instagram" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-pink-50 text-pink-700 font-bold text-xs border border-pink-200">
+                      📸 {{ lead.instagram }}
+                    </span>
+                    <span v-else class="text-slate-400 text-xs">-</span>
                   </td>
                   <td class="px-5 py-4 text-slate-600">
                     {{ lead.address }}
