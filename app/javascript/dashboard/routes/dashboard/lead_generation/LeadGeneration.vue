@@ -15,12 +15,28 @@ const activeExtractor = ref('gmaps');
 // ==========================================
 // 1. GOOGLE MAPS EXTRACTOR
 // ==========================================
-const gmapsQuery = ref('');
-const gmapsLimit = ref(20);
+const gmapsNiche = ref('');
+const gmapsCity = ref('');
+const gmapsCountry = ref('ES');
+const gmapsLimit = ref(25);
 const gmapsLoading = ref(false);
 const gmapsLeads = ref([]);
 const gmapsSuccessMsg = ref('');
 const gmapsErrorMsg = ref('');
+
+const countriesList = [
+  { code: 'ES', flag: '🇪🇸', name: 'España (+34)' },
+  { code: 'BR', flag: '🇧🇷', name: 'Brasil (+55)' },
+  { code: 'VE', flag: '🇻🇪', name: 'Venezuela (+58)' },
+  { code: 'CO', flag: '🇨🇴', name: 'Colombia (+57)' },
+  { code: 'MX', flag: '🇲🇽', name: 'México (+52)' },
+  { code: 'AR', flag: '🇦🇷', name: 'Argentina (+54)' },
+  { code: 'US', flag: '🇺🇸', name: 'Estados Unidos (+1)' },
+  { code: 'CL', flag: '🇨🇱', name: 'Chile (+56)' },
+  { code: 'PE', flag: '🇵🇪', name: 'Perú (+51)' },
+  { code: 'PA', flag: '🇵🇦', name: 'Panamá (+507)' },
+  { code: 'EC', flag: '🇪🇨', name: 'Ecuador (+593)' },
+];
 
 // ==========================================
 // 2. WHATSAPP GROUPS (2-PHASE)
@@ -58,8 +74,8 @@ const igSuccessMsg = ref('');
 // ==========================================
 
 const extractGMapsLeads = async () => {
-  if (!gmapsQuery.value) {
-    gmapsErrorMsg.value = 'Ingresa un rubro y ciudad (ej: Dentistas en Vila Velha, ES)';
+  if (!gmapsNiche.value || !gmapsCity.value) {
+    gmapsErrorMsg.value = 'Por favor ingresa el área/rubro comercial y la ciudad.';
     return;
   }
   gmapsLoading.value = true;
@@ -70,7 +86,9 @@ const extractGMapsLeads = async () => {
     const res = await axios.post(
       'https://ig.inhubflow.online/api/extract/gmaps',
       {
-        query: gmapsQuery.value,
+        niche: gmapsNiche.value,
+        city: gmapsCity.value,
+        country: gmapsCountry.value,
         limit: Number(gmapsLimit.value)
       },
       { headers: { 'apikey': 'inhubflow_ig_secret_key_2026' } }
@@ -78,14 +96,16 @@ const extractGMapsLeads = async () => {
 
     if (res.data && res.data.leads && res.data.leads.length > 0) {
       gmapsLeads.value = res.data.leads;
-      gmapsSuccessMsg.value = `¡Se extrajeron ${res.data.leads.length} empresas de Google Maps para "${gmapsQuery.value}"!`;
+      const cObj = countriesList.find(c => c.code === gmapsCountry.value);
+      const cLabel = cObj ? `${cObj.flag} ${cObj.name}` : gmapsCountry.value;
+      gmapsSuccessMsg.value = `¡Se extrajeron ${res.data.leads.length} empresas de Google Maps para "${gmapsNiche.value} en ${gmapsCity.value}, ${cLabel}"!`;
       
       // Auto-save to saved lists
-      saveNewList(`📍 ${gmapsQuery.value}`, 'gmaps', 'Google Maps B2B', res.data.leads);
+      saveNewList(`📍 ${gmapsNiche.value} - ${gmapsCity.value}`, 'gmaps', 'Google Maps B2B', res.data.leads);
     }
   } catch (e) {
     console.error('GMaps notice:', e);
-    gmapsSuccessMsg.value = `Se obtuvieron empresas para "${gmapsQuery.value}".`;
+    gmapsErrorMsg.value = 'No se pudieron extraer empresas. Verifica la conexión.';
   } finally {
     gmapsLoading.value = false;
   }
@@ -249,33 +269,71 @@ const extractInstagramLeads = async () => {
             Encuentra empresas locales con teléfono de WhatsApp, dirección, sitio web y calificación en cualquier ciudad del mundo.
           </p>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-5">
+            <!-- 1. Área / Rubro -->
             <div class="md:col-span-2">
               <label class="block text-xs font-bold text-slate-700 mb-2">
-                Nicho / Rubro Comercial y Ciudad Objetivo
+                🏢 Área de Actuación / Rubro Comercial
               </label>
               <div class="relative">
                 <input
-                  v-model="gmapsQuery"
+                  v-model="gmapsNiche"
                   type="text"
-                  placeholder="Escribe el nicho y la ciudad (ej: Dentistas en Vila Velha, Odontólogos en Caracas, Clínicas en Bogotá...)"
-                  class="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
+                  placeholder="Ej: Dentistas, Inmobiliarias, Clínicas Estéticas, Abogados..."
+                  class="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
                 />
-                <span class="i-lucide-search absolute left-4 top-3.5 text-slate-400 size-4" />
+                <span class="i-lucide-briefcase absolute left-3.5 top-3.5 text-slate-400 size-4" />
               </div>
             </div>
 
+            <!-- 2. Ciudad / Región -->
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-2">
-                Cantidad a Extraer: {{ gmapsLimit }} empresas
+                🏙️ Ciudad / Región
               </label>
+              <div class="relative">
+                <input
+                  v-model="gmapsCity"
+                  type="text"
+                  placeholder="Ej: Barcelona, Madrid, Caracas, São Paulo..."
+                  class="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all placeholder:text-slate-400 font-medium"
+                />
+                <span class="i-lucide-map-pin absolute left-3.5 top-3.5 text-slate-400 size-4" />
+              </div>
+            </div>
+
+            <!-- 3. País -->
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-2">
+                🌍 País Objetivo
+              </label>
+              <select
+                v-model="gmapsCountry"
+                class="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-sm text-slate-900 focus:bg-white focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10 transition-all font-bold cursor-pointer"
+              >
+                <option v-for="c in countriesList" :key="c.code" :value="c.code">
+                  {{ c.flag }} {{ c.name }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Slider Cantidad -->
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-slate-700">🔢 Cantidad de Empresas a Extraer:</span>
+              <span class="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 font-extrabold text-xs">
+                {{ gmapsLimit }} empresas
+              </span>
+            </div>
+            <div class="flex-1 max-w-xs">
               <input
                 v-model="gmapsLimit"
                 type="range"
                 min="5"
                 max="100"
                 step="5"
-                class="w-full accent-blue-600 mt-3 cursor-pointer"
+                class="w-full accent-blue-600 cursor-pointer"
               />
             </div>
           </div>
